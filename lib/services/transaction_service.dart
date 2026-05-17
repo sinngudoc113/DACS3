@@ -32,8 +32,13 @@ class TransactionService {
     if (_loaded) {
       return;
     }
-    _loaded = true;
-    await refresh();
+    try {
+      await refresh();
+    } catch (_) {
+      _store.value = const [];
+    } finally {
+      _loaded = true;
+    }
   }
 
   Future<void> refresh() async {
@@ -92,6 +97,21 @@ class _TransactionApi {
       headers: await _headers(),
     );
 
+    if (response.statusCode == 401) {
+      final retryResponse = await client.get(
+        Uri.parse('$baseUrl/transactions'),
+        headers: await _headers(forceRefresh: true),
+      );
+      if (retryResponse.statusCode == 401) {
+        return const [];
+      }
+      return _decodeTransactions(retryResponse);
+    }
+
+    return _decodeTransactions(response);
+  }
+
+  List<TransactionEntry> _decodeTransactions(http.Response response) {
     if (response.statusCode != 200) {
       throw StateError('Failed to load transactions (${response.statusCode}).');
     }
@@ -140,8 +160,8 @@ class _TransactionApi {
     }
   }
 
-  Future<Map<String, String>> _headers() async {
-    final token = await authService.getIdToken();
+  Future<Map<String, String>> _headers({bool forceRefresh = false}) async {
+    final token = await authService.getIdToken(forceRefresh: forceRefresh);
     if (token == null) {
       throw StateError('User not authenticated.');
     }

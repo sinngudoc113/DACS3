@@ -8,14 +8,13 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('vi'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('vi')];
 
   static AppLocalizations of(BuildContext context) {
-    final localizations =
-        Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final localizations = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     if (localizations == null) {
       throw StateError('AppLocalizations not found in widget tree.');
     }
@@ -47,7 +46,8 @@ class AppLocalizations {
       'budgetPaceSubtitle': '72% of this month budget used',
       'recentTransactions': 'Recent transactions',
       'seeAll': 'See all',
-      'noTransactions': 'No transactions yet. Add your first one from the Add tab.',
+      'noTransactions':
+          'No transactions yet. Add your first one from the Add tab.',
       'noTransactionsSummary': 'No transactions yet',
       'transactionsThisMonth': '{count} transactions this month',
       'newTransaction': 'New transaction',
@@ -90,7 +90,7 @@ class AppLocalizations {
       'savingsSubtitle': 'Reach {target} by June',
       'saved': 'Saved',
       'authLoginTitle': 'Welcome back',
-      'authRegisterTitle': 'Create account',
+      'authRegisterTitle': 'Create an account',
       'authLoginSubtitle': 'Sign in to manage your money flow.',
       'authRegisterSubtitle': 'Start tracking expenses in minutes.',
       'nameLabel': 'Full name',
@@ -104,8 +104,17 @@ class AppLocalizations {
       'switchToLogin': 'Already have an account? Sign in',
       'orContinueWith': 'Or continue with',
       'authError': 'Authentication failed. Please try again.',
+      'invalidLogin':
+          'Email or password is incorrect. Create an account first if you are new.',
+      'googleAuthError':
+          'Google sign-in failed. Please check Firebase setup and try again.',
       'passwordTooShort': 'Password must be at least 6 characters.',
       'passwordMismatch': 'Passwords do not match.',
+      'forgotPassword': 'Forgot password?',
+      'resetPasswordTitle': 'Reset Password',
+      'resetPasswordSubtitle': 'Enter your email to receive a reset link.',
+      'resetPasswordSent': 'Password reset link sent to your email.',
+      'resetPasswordFailed': 'Failed to send reset link.',
       'incomeType': 'Income',
       'categoryFood': 'Food',
       'categoryBills': 'Bills',
@@ -116,94 +125,104 @@ class AppLocalizations {
     },
     'vi': {
       'appTitle': 'Pulse Budget',
-      'navHome': 'Trang chu',
-      'navAdd': 'Them',
-      'navStats': 'Thong ke',
-      'language': 'Ngon ngu',
-      'languageEnglish': 'Tieng Anh',
-      'languageVietnamese': 'Tieng Viet',
-      'signOut': 'Dang xuat',
-      'greeting': 'Xin chao, {name}',
-      'dashboardSubtitle': 'Dong tien tuan nay cua ban.',
-      'totalBalance': 'So du tong',
-      'income': 'Thu nhap',
-      'spent': 'Chi tieu',
-      'quickActions': 'Tac vu nhanh',
-      'customize': 'Tuy chinh',
-      'addTransactionAction': 'Them giao dich',
-      'categoriesAction': 'Danh muc',
-      'insightsAction': 'Thong ke',
-      'tapToOpen': 'Nhan de mo',
-      'budgetPace': 'Tien do ngan sach',
-      'budgetPaceSubtitle': 'Da dung 72% ngan sach thang',
-      'recentTransactions': 'Giao dich gan day',
-      'seeAll': 'Xem tat ca',
-      'noTransactions': 'Chua co giao dich. Hay them giao dich dau tien o tab Them.',
-      'noTransactionsSummary': 'Chua co giao dich',
-      'transactionsThisMonth': '{count} giao dich trong thang',
-      'newTransaction': 'Giao dich moi',
-      'newTransactionSubtitle': 'Luu lai moi chi tiet quan trong.',
-      'typeLabel': 'Loai',
-      'expense': 'Chi tieu',
-      'details': 'Chi tiet',
-      'titleLabel': 'Tieu de',
-      'amountLabel': 'So tien',
-      'categoryLabel': 'Danh muc',
-      'notesLabel': 'Ghi chu',
-      'noteHint': 'Them ghi chu (tuy chon)',
-      'schedule': 'Thoi gian',
-      'account': 'Tai khoan',
-      'scheduleSubtitle': 'Hom nay, 9:40',
-      'accountSubtitle': 'The hang ngay',
-      'saveTransaction': 'Luu giao dich',
-      'saving': 'Dang luu...',
-      'enterTitle': 'Nhap tieu de.',
-      'enterAmount': 'Nhap so tien.',
-      'enterValidNumber': 'Nhap so hop le.',
-      'enterValidAmount': 'So tien khong hop le.',
-      'transactionSaved': 'Da luu giao dich.',
-      'transactionSaveFailed': 'Luu that bai: {error}',
-      'processing': 'Dang xu ly...',
-      'requiredField': 'Khong duoc de trong.',
-      'invalidEmail': 'Email khong hop le.',
-      'authEmailInUse': 'Email da ton tai.',
-      'insightsTitle': 'Thong ke',
-      'insightsSubtitle': 'Tong quan thang nay',
-      'week': 'Tuan',
-      'month': 'Thang',
-      'year': 'Nam',
-      'totalSpending': 'Tong chi tieu',
-      'monthlyTrend': 'Xu huong thang',
-      'spendingPulse': 'Nhip chi tieu',
-      'spendingByCategory': 'Chi tieu theo danh muc',
-      'noSpendingData': 'Chua co du lieu chi tieu.',
-      'savingsGoal': 'Muc tieu tiet kiem',
-      'savingsSubtitle': 'Dat {target} vao thang 6',
-      'saved': 'Tiet kiem',
-      'authLoginTitle': 'Chao mung quay lai',
-      'authRegisterTitle': 'Tao tai khoan',
-      'authLoginSubtitle': 'Dang nhap de quan ly dong tien.',
-      'authRegisterSubtitle': 'Bat dau theo doi chi tieu trong vai phut.',
-      'nameLabel': 'Ho va ten',
+      'navHome': 'Trang chủ',
+      'navAdd': 'Thêm',
+      'navStats': 'Thống kê',
+      'language': 'Ngôn ngữ',
+      'languageEnglish': 'Tiếng Anh',
+      'languageVietnamese': 'Tiếng Việt',
+      'signOut': 'Đăng xuất',
+      'greeting': 'Xin chào, {name}',
+      'dashboardSubtitle': 'Dòng tiền tuần này của bạn.',
+      'totalBalance': 'Số dư tổng',
+      'income': 'Thu nhập',
+      'spent': 'Chi tiêu',
+      'quickActions': 'Tác vụ nhanh',
+      'customize': 'Tùy chỉnh',
+      'addTransactionAction': 'Thêm giao dịch',
+      'categoriesAction': 'Danh mục',
+      'insightsAction': 'Thống kê',
+      'tapToOpen': 'Nhấn để mở',
+      'budgetPace': 'Tiến độ ngân sách',
+      'budgetPaceSubtitle': 'Đã dùng 72% ngân sách tháng',
+      'recentTransactions': 'Giao dịch gần đây',
+      'seeAll': 'Xem tất cả',
+      'noTransactions':
+          'Chưa có giao dịch. Hãy thêm giao dịch đầu tiên ở tab Thêm.',
+      'noTransactionsSummary': 'Chưa có giao dịch',
+      'transactionsThisMonth': '{count} giao dịch trong tháng',
+      'newTransaction': 'Giao dịch mới',
+      'newTransactionSubtitle': 'Lưu lại mọi chi tiết quan trọng.',
+      'typeLabel': 'Loại',
+      'expense': 'Chi tiêu',
+      'details': 'Chi tiết',
+      'titleLabel': 'Tiêu đề',
+      'amountLabel': 'Số tiền',
+      'categoryLabel': 'Danh mục',
+      'notesLabel': 'Ghi chú',
+      'noteHint': 'Thêm ghi chú (tùy chọn)',
+      'schedule': 'Thời gian',
+      'account': 'Tài khoản',
+      'scheduleSubtitle': 'Hôm nay, 9:40',
+      'accountSubtitle': 'Thẻ hằng ngày',
+      'saveTransaction': 'Lưu giao dịch',
+      'saving': 'Đang lưu...',
+      'enterTitle': 'Nhập tiêu đề.',
+      'enterAmount': 'Nhập số tiền.',
+      'enterValidNumber': 'Nhập số hợp lệ.',
+      'enterValidAmount': 'Số tiền không hợp lệ.',
+      'transactionSaved': 'Đã lưu giao dịch.',
+      'transactionSaveFailed': 'Lưu thất bại: {error}',
+      'processing': 'Đang xử lý...',
+      'requiredField': 'Không được để trống.',
+      'invalidEmail': 'Email không hợp lệ.',
+      'authEmailInUse': 'Email đã tồn tại.',
+      'insightsTitle': 'Thống kê',
+      'insightsSubtitle': 'Tổng quan tháng này',
+      'week': 'Tuần',
+      'month': 'Tháng',
+      'year': 'Năm',
+      'totalSpending': 'Tổng chi tiêu',
+      'monthlyTrend': 'Xu hướng tháng',
+      'spendingPulse': 'Nhịp chi tiêu',
+      'spendingByCategory': 'Chi tiêu theo danh mục',
+      'noSpendingData': 'Chưa có dữ liệu chi tiêu.',
+      'savingsGoal': 'Mục tiêu tiết kiệm',
+      'savingsSubtitle': 'Đạt {target} vào tháng 6',
+      'saved': 'Tiết kiệm',
+      'authLoginTitle': 'Chào mừng quay lại',
+      'authRegisterTitle': 'Tạo tài khoản',
+      'authLoginSubtitle': 'Đăng nhập để quản lý dòng tiền.',
+      'authRegisterSubtitle': 'Bắt đầu theo dõi chi tiêu trong vài phút.',
+      'nameLabel': 'Họ và tên',
       'emailLabel': 'Email',
-      'passwordLabel': 'Mat khau',
-      'confirmPasswordLabel': 'Nhap lai mat khau',
-      'loginButton': 'Dang nhap',
-      'registerButton': 'Dang ky',
-      'googleSignIn': 'Tiep tuc voi Google',
-      'switchToRegister': 'Chua co tai khoan? Dang ky',
-      'switchToLogin': 'Da co tai khoan? Dang nhap',
-      'orContinueWith': 'Hoac tiep tuc voi',
-      'authError': 'Dang nhap that bai. Vui long thu lai.',
-      'passwordTooShort': 'Mat khau toi thieu 6 ky tu.',
-      'passwordMismatch': 'Mat khau khong khop.',
-      'incomeType': 'Thu nhap',
-      'categoryFood': 'An uong',
-      'categoryBills': 'Hoa don',
-      'categoryTravel': 'Di lai',
-      'categoryShopping': 'Mua sam',
-      'categoryOther': 'Khac',
-      'defaultUserName': 'ban',
+      'passwordLabel': 'Mật khẩu',
+      'confirmPasswordLabel': 'Nhập lại mật khẩu',
+      'loginButton': 'Đăng nhập',
+      'registerButton': 'Đăng ký',
+      'googleSignIn': 'Tiếp tục với Google',
+      'switchToRegister': 'Chưa có tài khoản? Đăng ký',
+      'switchToLogin': 'Đã có tài khoản? Đăng nhập',
+      'orContinueWith': 'Hoặc tiếp tục với',
+      'authError': 'Đăng nhập thất bại. Vui lòng thử lại.',
+      'invalidLogin':
+          'Email hoặc mật khẩu không đúng. Nếu chưa có tài khoản, hãy đăng ký trước.',
+      'googleAuthError':
+          'Đăng nhập Google thất bại. Vui lòng kiểm tra cấu hình Firebase rồi thử lại.',
+      'passwordTooShort': 'Mật khẩu phải có ít nhất 6 ký tự.',
+      'passwordMismatch': 'Mật khẩu không khớp.',
+      'forgotPassword': 'Quên mật khẩu?',
+      'resetPasswordTitle': 'Đặt lại mật khẩu',
+      'resetPasswordSubtitle': 'Nhập email để nhận link đặt lại mật khẩu.',
+      'resetPasswordSent': 'Link đặt lại mật khẩu đã được gửi đến email.',
+      'resetPasswordFailed': 'Không thể gửi link đặt lại mật khẩu.',
+      'incomeType': 'Thu nhập',
+      'categoryFood': 'Ăn uống',
+      'categoryBills': 'Hóa đơn',
+      'categoryTravel': 'Đi lại',
+      'categoryShopping': 'Mua sắm',
+      'categoryOther': 'Khác',
+      'defaultUserName': 'bạn',
     },
   };
 
@@ -297,8 +316,15 @@ class AppLocalizations {
   String get switchToLogin => _text('switchToLogin');
   String get orContinueWith => _text('orContinueWith');
   String get authError => _text('authError');
+  String get invalidLogin => _text('invalidLogin');
+  String get googleAuthError => _text('googleAuthError');
   String get passwordTooShort => _text('passwordTooShort');
   String get passwordMismatch => _text('passwordMismatch');
+  String get forgotPassword => _text('forgotPassword');
+  String get resetPasswordTitle => _text('resetPasswordTitle');
+  String get resetPasswordSubtitle => _text('resetPasswordSubtitle');
+  String get resetPasswordSent => _text('resetPasswordSent');
+  String get resetPasswordFailed => _text('resetPasswordFailed');
   String get defaultUserName => _text('defaultUserName');
 
   String greeting(String name) => _format('greeting', {'name': name});
@@ -334,8 +360,9 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLocales
-        .any((supported) => supported.languageCode == locale.languageCode);
+    return AppLocalizations.supportedLocales.any(
+      (supported) => supported.languageCode == locale.languageCode,
+    );
   }
 
   @override

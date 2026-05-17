@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "640904805717",
+    "project_id": "dacs3-7dea8",
+    "storage_bucket": "dacs3-7dea8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640904805717:android:3e6e41379652e4b61543dc",
+        "android_client_info": {
+          "package_name": "com.example.dacs3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDebg00b-l82OpdbMCTRDQQ8jn0hVCVpGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640904805717:android:e70e81d8b98b8e481543dc",
+        "android_client_info": {
+          "package_name": "com.vku.hieu.eggtrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDebg00b-l82OpdbMCTRDQQ8jn0hVCVpGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

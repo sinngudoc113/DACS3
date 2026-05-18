@@ -35,6 +35,7 @@ module.exports = {
     }
   ],
   "transactions": [],
+  "budgets": [],
   "categories": [
     {
       "key": "food",

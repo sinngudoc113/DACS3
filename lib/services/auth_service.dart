@@ -64,12 +64,8 @@ class AuthService {
     http.Client? client,
     String? baseUrl,
   }) : _auth = auth ?? FirebaseAuth.instance,
-       _googleSignIn = googleSignIn ?? GoogleSignIn(
-         scopes: [
-           'email',
-           'profile',
-         ],
-       ),
+       _googleSignIn =
+           googleSignIn ?? GoogleSignIn(scopes: ['email', 'profile']),
        _client = client ?? http.Client(),
        _baseUrl = baseUrl ?? apiBaseUrl() {
     _auth.authStateChanges().listen((user) {
@@ -90,7 +86,6 @@ class AuthService {
   final String _baseUrl;
   final StreamController<AppUser?> _controller =
       StreamController<AppUser?>.broadcast();
-
 
   AppUser? _currentUser;
   String? _localToken;
@@ -219,14 +214,14 @@ class AuthService {
     await _clearLocalSession();
     await _googleSignIn.signOut();
     await _auth.signOut();
-    
+
     // Force reload để clear Google session trên web
     if (kIsWeb) {
       _currentUser = null;
       _controller.add(null);
       return;
     }
-    
+
     _currentUser = null;
     _controller.add(null);
   }

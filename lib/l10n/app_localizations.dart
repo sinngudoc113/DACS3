@@ -26,6 +26,8 @@ class AppLocalizations {
       'appTitle': 'Pulse Budget',
       'navHome': 'Home',
       'navAdd': 'Add',
+      'navHistory': 'History',
+      'navBudget': 'Budget',
       'navStats': 'Stats',
       'language': 'Language',
       'languageEnglish': 'English',
@@ -72,6 +74,8 @@ class AppLocalizations {
       'enterValidAmount': 'Enter a valid amount.',
       'transactionSaved': 'Transaction saved.',
       'transactionSaveFailed': 'Failed to save: {error}',
+      'transactionDeleted': 'Transaction deleted.',
+      'transactionDeleteFailed': 'Failed to delete: {error}',
       'processing': 'Processing...',
       'requiredField': 'This field is required.',
       'invalidEmail': 'Invalid email address.',
@@ -89,6 +93,25 @@ class AppLocalizations {
       'savingsGoal': 'Savings goal',
       'savingsSubtitle': 'Reach {target} by June',
       'saved': 'Saved',
+      'historyTitle': 'Transaction history',
+      'historySubtitle': 'Search, filter, and manage every money movement.',
+      'searchTransactions': 'Search transactions',
+      'allTransactions': 'All',
+      'historyCount': '{count} matching transactions',
+      'noMatchingTransactions': 'No matching transactions found.',
+      'budgetTitle': 'Monthly budget',
+      'budgetSubtitle': 'Set limits and monitor spending pace in real time.',
+      'setMonthlyBudget': 'Set monthly limit',
+      'budgetLimitLabel': 'Budget limit',
+      'saveBudget': 'Save budget',
+      'budgetSaved': 'Budget saved.',
+      'budgetSaveFailed': 'Failed to save budget: {error}',
+      'currentBudgetProgress': 'Current progress',
+      'noBudgetYet': 'No budget has been set for this month.',
+      'dailyReminder': 'Daily recording reminder',
+      'dailyReminderSubtitle':
+          'Open the app every evening to keep your spending history complete.',
+      'overallBudget': 'Overall budget',
       'authLoginTitle': 'Welcome back',
       'authRegisterTitle': 'Create an account',
       'authLoginSubtitle': 'Sign in to manage your money flow.',
@@ -242,6 +265,8 @@ class AppLocalizations {
   String get appTitle => _text('appTitle');
   String get navHome => _text('navHome');
   String get navAdd => _text('navAdd');
+  String get navHistory => _text('navHistory');
+  String get navBudget => _text('navBudget');
   String get navStats => _text('navStats');
   String get language => _text('language');
   String get languageEnglish => _text('languageEnglish');
@@ -285,6 +310,7 @@ class AppLocalizations {
   String get enterValidNumber => _text('enterValidNumber');
   String get enterValidAmount => _text('enterValidAmount');
   String get transactionSaved => _text('transactionSaved');
+  String get transactionDeleted => _text('transactionDeleted');
   String get processing => _text('processing');
   String get requiredField => _text('requiredField');
   String get invalidEmail => _text('invalidEmail');
@@ -301,6 +327,22 @@ class AppLocalizations {
   String get noSpendingData => _text('noSpendingData');
   String get savingsGoal => _text('savingsGoal');
   String get saved => _text('saved');
+  String get historyTitle => _text('historyTitle');
+  String get historySubtitle => _text('historySubtitle');
+  String get searchTransactions => _text('searchTransactions');
+  String get allTransactions => _text('allTransactions');
+  String get noMatchingTransactions => _text('noMatchingTransactions');
+  String get budgetTitle => _text('budgetTitle');
+  String get budgetSubtitle => _text('budgetSubtitle');
+  String get setMonthlyBudget => _text('setMonthlyBudget');
+  String get budgetLimitLabel => _text('budgetLimitLabel');
+  String get saveBudget => _text('saveBudget');
+  String get budgetSaved => _text('budgetSaved');
+  String get currentBudgetProgress => _text('currentBudgetProgress');
+  String get noBudgetYet => _text('noBudgetYet');
+  String get dailyReminder => _text('dailyReminder');
+  String get dailyReminderSubtitle => _text('dailyReminderSubtitle');
+  String get overallBudget => _text('overallBudget');
   String get authLoginTitle => _text('authLoginTitle');
   String get authRegisterTitle => _text('authRegisterTitle');
   String get authLoginSubtitle => _text('authLoginSubtitle');
@@ -334,6 +376,15 @@ class AppLocalizations {
 
   String transactionSaveFailed(String error) =>
       _format('transactionSaveFailed', {'error': error});
+
+  String transactionDeleteFailed(String error) =>
+      _format('transactionDeleteFailed', {'error': error});
+
+  String budgetSaveFailed(String error) =>
+      _format('budgetSaveFailed', {'error': error});
+
+  String historyCount(int count) =>
+      _format('historyCount', {'count': '$count'});
 
   String savingsSubtitle(String target) =>
       _format('savingsSubtitle', {'target': target});

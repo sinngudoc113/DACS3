@@ -13,16 +13,16 @@ import 'package:dacs3/services/transaction_service.dart';
 import 'package:dacs3/state/locale_controller.dart';
 
 void main() {
-  testWidgets('Finance app renders dashboard shell', (WidgetTester tester) async {
+  testWidgets('Finance app renders dashboard shell', (
+    WidgetTester tester,
+  ) async {
     final service = TransactionService.memory();
-    final localeController = LocaleController(initialLocale: const Locale('en'));
+    final localeController = LocaleController(
+      initialLocale: const Locale('en'),
+    );
 
     await tester.pumpWidget(
-      FinanceApp(
-        localeController: localeController,
-        service: service,
-        enableAuthGate: false,
-      ),
+      FinanceApp(localeController: localeController, service: service),
     );
     await tester.pumpAndSettle();
 

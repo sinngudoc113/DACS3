@@ -103,26 +103,26 @@ class _StatsPageState extends State<StatsPage> {
                         setState(() => _range = selection.first);
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith((
+                        backgroundColor: WidgetStateProperty.resolveWith((
                           states,
                         ) {
-                          if (states.contains(MaterialState.selected)) {
+                          if (states.contains(WidgetState.selected)) {
                             return const Color(0xFFE2F3EE);
                           }
                           return Colors.white;
                         }),
-                        foregroundColor: MaterialStateProperty.resolveWith((
+                        foregroundColor: WidgetStateProperty.resolveWith((
                           states,
                         ) {
-                          if (states.contains(MaterialState.selected)) {
+                          if (states.contains(WidgetState.selected)) {
                             return const Color(0xFF0C6D6A);
                           }
                           return const Color(0xFF5C6B68);
                         }),
-                        side: MaterialStateProperty.all(
+                        side: WidgetStateProperty.all(
                           BorderSide(color: Colors.black.withAlpha(12)),
                         ),
-                        shape: MaterialStateProperty.all(
+                        shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -256,14 +256,12 @@ class _StatsPageState extends State<StatsPage> {
                         ),
                       )
                     else
-                      ...categoryStats
-                          .map(
-                            (stat) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _CategoryBar(stat: stat),
-                            ),
-                          )
-                          .toList(),
+                      ...categoryStats.map(
+                        (stat) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _CategoryBar(stat: stat),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(18),

@@ -110,8 +110,8 @@ class FinanceApp extends StatelessWidget {
               navigationBarTheme: NavigationBarThemeData(
                 backgroundColor: Colors.white,
                 indicatorColor: const Color(0xFFE2F3EE),
-                labelTextStyle: MaterialStateProperty.resolveWith((states) {
-                  final color = states.contains(MaterialState.selected)
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  final color = states.contains(WidgetState.selected)
                       ? const Color(0xFF0C6D6A)
                       : const Color(0xFF6D7573);
                   return baseTextTheme.labelSmall?.copyWith(
@@ -119,8 +119,8 @@ class FinanceApp extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   );
                 }),
-                iconTheme: MaterialStateProperty.resolveWith((states) {
-                  final color = states.contains(MaterialState.selected)
+                iconTheme: WidgetStateProperty.resolveWith((states) {
+                  final color = states.contains(WidgetState.selected)
                       ? const Color(0xFF0C6D6A)
                       : const Color(0xFF6D7573);
                   return IconThemeData(color: color);

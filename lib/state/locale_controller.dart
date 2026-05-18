@@ -21,8 +21,8 @@ class LocaleScope extends InheritedNotifier<LocaleController> {
   const LocaleScope({
     super.key,
     required LocaleController controller,
-    required Widget child,
-  }) : super(notifier: controller, child: child);
+    required super.child,
+  }) : super(notifier: controller);
 
   static LocaleController of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<LocaleScope>();

@@ -1,10 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
 import '../models/transaction_entry.dart';
+import '../services/auth_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/currency_format.dart';
 import '../widgets/shared_widgets.dart';
@@ -73,12 +72,8 @@ class _DashboardPageState extends State<DashboardPage>
               builder: (context, transactions, _) {
                 final l10n = AppLocalizations.of(context);
                 final totals = _TransactionTotals.fromEntries(transactions);
-                var userName = '';
-                if (Firebase.apps.isNotEmpty) {
-                  userName =
-                      FirebaseAuth.instance.currentUser?.displayName?.trim() ??
-                      '';
-                }
+                final userName =
+                    AuthService().currentUser?.displayName.trim() ?? '';
                 final greetingName = userName.isEmpty
                     ? l10n.defaultUserName
                     : userName;

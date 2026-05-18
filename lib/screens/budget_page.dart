@@ -144,7 +144,7 @@ class _BudgetPageState extends State<BudgetPage> {
                               ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
-                                value: _selectedCategory,
+                                initialValue: _selectedCategory,
                                 decoration: InputDecoration(
                                   labelText: l10n.categoryLabel,
                                 ),

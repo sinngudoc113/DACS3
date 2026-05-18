@@ -32,15 +32,20 @@ class TransactionService {
     if (_loaded) {
       return;
     }
-    _loaded = true;
-    await refresh();
+    try {
+      await refresh();
+    } catch (_) {
+      _store.value = const [];
+    } finally {
+      _loaded = true;
+    }
   }
 
   Future<void> refresh() async {
     if (_api == null) {
       return;
     }
-    final items = await _api!.fetchTransactions();
+    final items = await _api.fetchTransactions();
     _store.value = items;
   }
 
@@ -49,7 +54,7 @@ class TransactionService {
       _store.value = [entry, ..._store.value];
       return;
     }
-    final created = await _api!.createTransaction(entry);
+    final created = await _api.createTransaction(entry);
     _store.value = [created, ..._store.value];
   }
 
@@ -61,7 +66,7 @@ class TransactionService {
       _store.value = updated;
       return;
     }
-    await _api!.updateTransaction(entry);
+    await _api.updateTransaction(entry);
     await refresh();
   }
 
@@ -70,7 +75,7 @@ class TransactionService {
       _store.value = _store.value.where((item) => item.id != id).toList();
       return;
     }
-    await _api!.deleteTransaction(id);
+    await _api.deleteTransaction(id);
     await refresh();
   }
 }
@@ -92,6 +97,21 @@ class _TransactionApi {
       headers: await _headers(),
     );
 
+    if (response.statusCode == 401) {
+      final retryResponse = await client.get(
+        Uri.parse('$baseUrl/transactions'),
+        headers: await _headers(forceRefresh: true),
+      );
+      if (retryResponse.statusCode == 401) {
+        return const [];
+      }
+      return _decodeTransactions(retryResponse);
+    }
+
+    return _decodeTransactions(response);
+  }
+
+  List<TransactionEntry> _decodeTransactions(http.Response response) {
     if (response.statusCode != 200) {
       throw StateError('Failed to load transactions (${response.statusCode}).');
     }
@@ -146,8 +166,8 @@ class _TransactionApi {
     }
   }
 
-  Future<Map<String, String>> _headers() async {
-    final token = await authService.getIdToken();
+  Future<Map<String, String>> _headers({bool forceRefresh = false}) async {
+    final token = await authService.getIdToken(forceRefresh: forceRefresh);
     if (token == null) {
       throw StateError('User not authenticated.');
     }

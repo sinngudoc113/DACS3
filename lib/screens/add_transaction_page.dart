@@ -191,26 +191,26 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       setState(() => _type = selection.first);
                     },
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.resolveWith((
+                      backgroundColor: WidgetStateProperty.resolveWith((
                         states,
                       ) {
-                        if (states.contains(MaterialState.selected)) {
+                        if (states.contains(WidgetState.selected)) {
                           return accent.withAlpha(24);
                         }
                         return Colors.white;
                       }),
-                      foregroundColor: MaterialStateProperty.resolveWith((
+                      foregroundColor: WidgetStateProperty.resolveWith((
                         states,
                       ) {
-                        if (states.contains(MaterialState.selected)) {
+                        if (states.contains(WidgetState.selected)) {
                           return accent;
                         }
                         return const Color(0xFF5C6B68);
                       }),
-                      side: MaterialStateProperty.all(
+                      side: WidgetStateProperty.all(
                         BorderSide(color: Colors.black.withAlpha(12)),
                       ),
-                      shape: MaterialStateProperty.all(
+                      shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),

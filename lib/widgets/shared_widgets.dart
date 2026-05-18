@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/auth_service.dart';
 import '../state/locale_controller.dart';
 
 class DecorativeBackground extends StatelessWidget {
@@ -181,7 +181,7 @@ class AppMenuButton extends StatelessWidget {
             localeController.setLocale(const Locale('vi'));
             break;
           case _MenuAction.signOut:
-            await FirebaseAuth.instance.signOut();
+            await AuthService().signOut();
             break;
         }
       },

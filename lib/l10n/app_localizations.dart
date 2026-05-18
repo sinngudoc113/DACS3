@@ -8,14 +8,13 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('vi'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('vi')];
 
   static AppLocalizations of(BuildContext context) {
-    final localizations =
-        Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final localizations = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     if (localizations == null) {
       throw StateError('AppLocalizations not found in widget tree.');
     }
@@ -27,6 +26,8 @@ class AppLocalizations {
       'appTitle': 'Pulse Budget',
       'navHome': 'Home',
       'navAdd': 'Add',
+      'navHistory': 'History',
+      'navBudget': 'Budget',
       'navStats': 'Stats',
       'language': 'Language',
       'languageEnglish': 'English',
@@ -47,7 +48,8 @@ class AppLocalizations {
       'budgetPaceSubtitle': '72% of this month budget used',
       'recentTransactions': 'Recent transactions',
       'seeAll': 'See all',
-      'noTransactions': 'No transactions yet. Add your first one from the Add tab.',
+      'noTransactions':
+          'No transactions yet. Add your first one from the Add tab.',
       'noTransactionsSummary': 'No transactions yet',
       'transactionsThisMonth': '{count} transactions this month',
       'newTransaction': 'New transaction',
@@ -72,6 +74,8 @@ class AppLocalizations {
       'enterValidAmount': 'Enter a valid amount.',
       'transactionSaved': 'Transaction saved.',
       'transactionSaveFailed': 'Failed to save: {error}',
+      'transactionDeleted': 'Transaction deleted.',
+      'transactionDeleteFailed': 'Failed to delete: {error}',
       'processing': 'Processing...',
       'requiredField': 'This field is required.',
       'invalidEmail': 'Invalid email address.',
@@ -89,6 +93,25 @@ class AppLocalizations {
       'savingsGoal': 'Savings goal',
       'savingsSubtitle': 'Reach {target} by June',
       'saved': 'Saved',
+      'historyTitle': 'Transaction history',
+      'historySubtitle': 'Search, filter, and manage every money movement.',
+      'searchTransactions': 'Search transactions',
+      'allTransactions': 'All',
+      'historyCount': '{count} matching transactions',
+      'noMatchingTransactions': 'No matching transactions found.',
+      'budgetTitle': 'Monthly budget',
+      'budgetSubtitle': 'Set limits and monitor spending pace in real time.',
+      'setMonthlyBudget': 'Set monthly limit',
+      'budgetLimitLabel': 'Budget limit',
+      'saveBudget': 'Save budget',
+      'budgetSaved': 'Budget saved.',
+      'budgetSaveFailed': 'Failed to save budget: {error}',
+      'currentBudgetProgress': 'Current progress',
+      'noBudgetYet': 'No budget has been set for this month.',
+      'dailyReminder': 'Daily recording reminder',
+      'dailyReminderSubtitle':
+          'Open the app every evening to keep your spending history complete.',
+      'overallBudget': 'Overall budget',
       'authLoginTitle': 'Welcome back',
       'authRegisterTitle': 'Create account',
       'authLoginSubtitle': 'Sign in to manage your money flow.',
@@ -118,6 +141,8 @@ class AppLocalizations {
       'appTitle': 'Pulse Budget',
       'navHome': 'Trang chu',
       'navAdd': 'Them',
+      'navHistory': 'Lich su',
+      'navBudget': 'Ngan sach',
       'navStats': 'Thong ke',
       'language': 'Ngon ngu',
       'languageEnglish': 'Tieng Anh',
@@ -138,7 +163,8 @@ class AppLocalizations {
       'budgetPaceSubtitle': 'Da dung 72% ngan sach thang',
       'recentTransactions': 'Giao dich gan day',
       'seeAll': 'Xem tat ca',
-      'noTransactions': 'Chua co giao dich. Hay them giao dich dau tien o tab Them.',
+      'noTransactions':
+          'Chua co giao dich. Hay them giao dich dau tien o tab Them.',
       'noTransactionsSummary': 'Chua co giao dich',
       'transactionsThisMonth': '{count} giao dich trong thang',
       'newTransaction': 'Giao dich moi',
@@ -163,6 +189,8 @@ class AppLocalizations {
       'enterValidAmount': 'So tien khong hop le.',
       'transactionSaved': 'Da luu giao dich.',
       'transactionSaveFailed': 'Luu that bai: {error}',
+      'transactionDeleted': 'Da xoa giao dich.',
+      'transactionDeleteFailed': 'Xoa that bai: {error}',
       'processing': 'Dang xu ly...',
       'requiredField': 'Khong duoc de trong.',
       'invalidEmail': 'Email khong hop le.',
@@ -180,6 +208,26 @@ class AppLocalizations {
       'savingsGoal': 'Muc tieu tiet kiem',
       'savingsSubtitle': 'Dat {target} vao thang 6',
       'saved': 'Tiet kiem',
+      'historyTitle': 'Lich su giao dich',
+      'historySubtitle': 'Tim kiem, loc va quan ly toan bo thu chi.',
+      'searchTransactions': 'Tim kiem giao dich',
+      'allTransactions': 'Tat ca',
+      'historyCount': '{count} giao dich phu hop',
+      'noMatchingTransactions': 'Khong tim thay giao dich phu hop.',
+      'budgetTitle': 'Ngan sach thang',
+      'budgetSubtitle':
+          'Dat han muc va theo doi toc do chi tieu theo thoi gian thuc.',
+      'setMonthlyBudget': 'Dat han muc thang',
+      'budgetLimitLabel': 'Han muc ngan sach',
+      'saveBudget': 'Luu ngan sach',
+      'budgetSaved': 'Da luu ngan sach.',
+      'budgetSaveFailed': 'Luu ngan sach that bai: {error}',
+      'currentBudgetProgress': 'Tien do hien tai',
+      'noBudgetYet': 'Chua dat ngan sach cho thang nay.',
+      'dailyReminder': 'Nhac ghi chep hang ngay',
+      'dailyReminderSubtitle':
+          'Mo ung dung moi toi de lich su chi tieu luon day du.',
+      'overallBudget': 'Ngan sach tong',
       'authLoginTitle': 'Chao mung quay lai',
       'authRegisterTitle': 'Tao tai khoan',
       'authLoginSubtitle': 'Dang nhap de quan ly dong tien.',
@@ -223,6 +271,8 @@ class AppLocalizations {
   String get appTitle => _text('appTitle');
   String get navHome => _text('navHome');
   String get navAdd => _text('navAdd');
+  String get navHistory => _text('navHistory');
+  String get navBudget => _text('navBudget');
   String get navStats => _text('navStats');
   String get language => _text('language');
   String get languageEnglish => _text('languageEnglish');
@@ -266,6 +316,7 @@ class AppLocalizations {
   String get enterValidNumber => _text('enterValidNumber');
   String get enterValidAmount => _text('enterValidAmount');
   String get transactionSaved => _text('transactionSaved');
+  String get transactionDeleted => _text('transactionDeleted');
   String get processing => _text('processing');
   String get requiredField => _text('requiredField');
   String get invalidEmail => _text('invalidEmail');
@@ -282,6 +333,22 @@ class AppLocalizations {
   String get noSpendingData => _text('noSpendingData');
   String get savingsGoal => _text('savingsGoal');
   String get saved => _text('saved');
+  String get historyTitle => _text('historyTitle');
+  String get historySubtitle => _text('historySubtitle');
+  String get searchTransactions => _text('searchTransactions');
+  String get allTransactions => _text('allTransactions');
+  String get noMatchingTransactions => _text('noMatchingTransactions');
+  String get budgetTitle => _text('budgetTitle');
+  String get budgetSubtitle => _text('budgetSubtitle');
+  String get setMonthlyBudget => _text('setMonthlyBudget');
+  String get budgetLimitLabel => _text('budgetLimitLabel');
+  String get saveBudget => _text('saveBudget');
+  String get budgetSaved => _text('budgetSaved');
+  String get currentBudgetProgress => _text('currentBudgetProgress');
+  String get noBudgetYet => _text('noBudgetYet');
+  String get dailyReminder => _text('dailyReminder');
+  String get dailyReminderSubtitle => _text('dailyReminderSubtitle');
+  String get overallBudget => _text('overallBudget');
   String get authLoginTitle => _text('authLoginTitle');
   String get authRegisterTitle => _text('authRegisterTitle');
   String get authLoginSubtitle => _text('authLoginSubtitle');
@@ -309,6 +376,15 @@ class AppLocalizations {
   String transactionSaveFailed(String error) =>
       _format('transactionSaveFailed', {'error': error});
 
+  String transactionDeleteFailed(String error) =>
+      _format('transactionDeleteFailed', {'error': error});
+
+  String budgetSaveFailed(String error) =>
+      _format('budgetSaveFailed', {'error': error});
+
+  String historyCount(int count) =>
+      _format('historyCount', {'count': '$count'});
+
   String savingsSubtitle(String target) =>
       _format('savingsSubtitle', {'target': target});
 
@@ -334,8 +410,9 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLocales
-        .any((supported) => supported.languageCode == locale.languageCode);
+    return AppLocalizations.supportedLocales.any(
+      (supported) => supported.languageCode == locale.languageCode,
+    );
   }
 
   @override

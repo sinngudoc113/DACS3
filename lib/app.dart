@@ -4,7 +4,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'l10n/app_localizations.dart';
-import 'screens/auth_gate.dart';
 import 'screens/home_shell.dart';
 import 'firebase_options.dart';
 import 'services/transaction_service.dart';
@@ -55,16 +54,10 @@ class BootstrapApp extends StatelessWidget {
 }
 
 class FinanceApp extends StatelessWidget {
-  const FinanceApp({
-    super.key,
-    required this.localeController,
-    this.service,
-    this.enableAuthGate = true,
-  });
+  const FinanceApp({super.key, required this.localeController, this.service});
 
   final LocaleController localeController;
   final TransactionService? service;
-  final bool enableAuthGate;
 
   @override
   Widget build(BuildContext context) {
@@ -100,10 +93,12 @@ class FinanceApp extends StatelessWidget {
                 headlineLarge: displayTextTheme.headlineLarge,
                 headlineMedium: displayTextTheme.headlineMedium,
                 headlineSmall: displayTextTheme.headlineSmall,
-                titleLarge: baseTextTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
-                titleMedium: baseTextTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                titleLarge: baseTextTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                titleMedium: baseTextTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 bodyLarge: baseTextTheme.bodyLarge?.copyWith(height: 1.3),
                 bodyMedium: baseTextTheme.bodyMedium?.copyWith(height: 1.3),
               ),
@@ -154,8 +149,10 @@ class FinanceApp extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
-                  borderSide:
-                      const BorderSide(color: Color(0xFF0C6D6A), width: 1.4),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF0C6D6A),
+                    width: 1.4,
+                  ),
                 ),
                 labelStyle: baseTextTheme.bodySmall?.copyWith(
                   color: const Color(0xFF6D7573),
@@ -169,9 +166,7 @@ class FinanceApp extends StatelessWidget {
                 ),
               ),
             ),
-            home: enableAuthGate
-                ? AuthGate(service: service)
-                : HomeShell(service: service),
+            home: HomeShell(service: service),
           ),
         );
       },

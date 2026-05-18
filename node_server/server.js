@@ -110,6 +110,10 @@ function transactionBelongsToUser(transaction, user) {
   return user.role === 'admin' || transaction.userId === user.uid;
 }
 
+function budgetBelongsToUser(budget, user) {
+  return user.role === 'admin' || budget.userId === user.uid;
+}
+
 function mapTransaction(item) {
   return {
     id: item.id,
@@ -122,6 +126,16 @@ function mapTransaction(item) {
     userId: item.userId,
     userEmail: item.userEmail || '',
     createdBy: item.createdBy || '',
+  };
+}
+
+function mapBudget(item) {
+  return {
+    id: item.id,
+    month: item.month,
+    category: item.category,
+    limit: item.limit,
+    userId: item.userId,
   };
 }
 
@@ -168,6 +182,49 @@ app.get('/transactions', authMiddleware, (req, res) => {
     : store.transactions.filter((transaction) => transaction.userId === req.user.uid);
 
   res.json(items.map(mapTransaction));
+});
+
+app.get('/budgets', authMiddleware, (req, res) => {
+  const store = loadStore();
+  const budgets = Array.isArray(store.budgets) ? store.budgets : [];
+  const items = req.user.role === 'admin'
+    ? budgets
+    : budgets.filter((budget) => budget.userId === req.user.uid);
+
+  res.json(items.map(mapBudget));
+});
+
+app.put('/budgets/:month/:category', authMiddleware, (req, res) => {
+  const { month, category } = req.params;
+  const store = loadStore();
+  if (!Array.isArray(store.budgets)) {
+    store.budgets = [];
+  }
+
+  const normalizedMonth = String(month || '').trim();
+  const normalizedCategory = String(category || 'overall').trim().toLowerCase();
+  const ownerId = req.user.uid;
+  let budget = store.budgets.find(
+    (item) =>
+      item.month === normalizedMonth &&
+      item.category === normalizedCategory &&
+      budgetBelongsToUser(item, req.user)
+  );
+
+  if (!budget) {
+    budget = {
+      id: `${normalizedMonth}-${normalizedCategory}-${ownerId}`,
+      month: normalizedMonth,
+      category: normalizedCategory,
+      limit: 0,
+      userId: ownerId,
+    };
+    store.budgets.push(budget);
+  }
+
+  budget.limit = Math.max(0, Number(req.body.limit) || 0);
+  saveStore(store);
+  res.json(mapBudget(budget));
 });
 
 app.post('/transactions', authMiddleware, (req, res) => {

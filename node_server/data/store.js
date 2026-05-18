@@ -9,6 +9,7 @@ module.exports = {
     }
   ],
   transactions: [],
+  budgets: [],
   categories: [
     { key: 'food', label: 'Food' },
     { key: 'bills', label: 'Bills' },

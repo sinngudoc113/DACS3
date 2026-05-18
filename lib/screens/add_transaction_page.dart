@@ -65,8 +65,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   @override
   void initState() {
     super.initState();
-    _service =
-        widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _service = widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
   }
 
   Future<void> _saveTransaction() async {
@@ -79,9 +78,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     final rawAmount = _amountController.text.replaceAll(',', '');
     final amount = double.tryParse(rawAmount);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.enterValidAmount)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.enterValidAmount)));
       return;
     }
 
@@ -107,9 +106,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       _amountController.clear();
       _noteController.clear();
       setState(() => _selectedCategory = 0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.transactionSaved)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.transactionSaved)));
     } catch (error) {
       if (!mounted) {
         return;
@@ -192,13 +191,17 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       setState(() => _type = selection.first);
                     },
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.resolveWith((states) {
+                      backgroundColor: MaterialStateProperty.resolveWith((
+                        states,
+                      ) {
                         if (states.contains(MaterialState.selected)) {
                           return accent.withAlpha(24);
                         }
                         return Colors.white;
                       }),
-                      foregroundColor: MaterialStateProperty.resolveWith((states) {
+                      foregroundColor: MaterialStateProperty.resolveWith((
+                        states,
+                      ) {
                         if (states.contains(MaterialState.selected)) {
                           return accent;
                         }
@@ -246,8 +249,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       if (value == null || value.trim().isEmpty) {
                         return l10n.enterAmount;
                       }
-                      final parsed =
-                          double.tryParse(value.replaceAll(',', '').trim());
+                      final parsed = double.tryParse(
+                        value.replaceAll(',', '').trim(),
+                      );
                       if (parsed == null || parsed <= 0) {
                         return l10n.enterValidNumber;
                       }

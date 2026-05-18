@@ -27,8 +27,7 @@ class _StatsPageState extends State<StatsPage> {
   @override
   void initState() {
     super.initState();
-    _service =
-        widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _service = widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
     _service.load();
   }
 
@@ -46,7 +45,10 @@ class _StatsPageState extends State<StatsPage> {
             builder: (context, transactions, _) {
               final filtered = _filterTransactions(transactions, _range);
               final totals = _StatsTotals.fromEntries(filtered);
-              final categoryStats = _buildCategoryStats(filtered, totals.expense);
+              final categoryStats = _buildCategoryStats(
+                filtered,
+                totals.expense,
+              );
               final trend = _buildTrend(filtered);
               const savingsTarget = 2000.0;
               final saved = totals.income - totals.expense;
@@ -101,15 +103,17 @@ class _StatsPageState extends State<StatsPage> {
                         setState(() => _range = selection.first);
                       },
                       style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith((states) {
+                        backgroundColor: MaterialStateProperty.resolveWith((
+                          states,
+                        ) {
                           if (states.contains(MaterialState.selected)) {
                             return const Color(0xFFE2F3EE);
                           }
                           return Colors.white;
                         }),
-                        foregroundColor:
-                            MaterialStateProperty.resolveWith((states) {
+                        foregroundColor: MaterialStateProperty.resolveWith((
+                          states,
+                        ) {
                           if (states.contains(MaterialState.selected)) {
                             return const Color(0xFF0C6D6A);
                           }
@@ -210,13 +214,15 @@ class _StatsPageState extends State<StatsPage> {
                                         child: Container(
                                           height: 30 + value * 100,
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                             gradient: LinearGradient(
                                               colors: [
                                                 const Color(0xFF0C6D6A),
-                                                const Color(0xFF0B3B47)
-                                                    .withAlpha(180),
+                                                const Color(
+                                                  0xFF0B3B47,
+                                                ).withAlpha(180),
                                               ],
                                               begin: Alignment.topCenter,
                                               end: Alignment.bottomCenter,
@@ -251,10 +257,12 @@ class _StatsPageState extends State<StatsPage> {
                       )
                     else
                       ...categoryStats
-                          .map((stat) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _CategoryBar(stat: stat),
-                              ))
+                          .map(
+                            (stat) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _CategoryBar(stat: stat),
+                            ),
+                          )
                           .toList(),
                     const SizedBox(height: 24),
                     Container(
@@ -289,16 +297,18 @@ class _StatsPageState extends State<StatsPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(l10n.savingsGoal,
-                                    style: textTheme.titleMedium),
+                                Text(
+                                  l10n.savingsGoal,
+                                  style: textTheme.titleMedium,
+                                ),
                                 const SizedBox(height: 6),
                                 Text(
                                   l10n.savingsSubtitle(
                                     '\$${savingsTarget.toStringAsFixed(0)}',
                                   ),
                                   style: textTheme.bodySmall?.copyWith(
-                                        color: const Color(0xFF6D7573),
-                                      ),
+                                    color: const Color(0xFF6D7573),
+                                  ),
                                 ),
                                 const SizedBox(height: 10),
                                 ClipRRect(
@@ -309,8 +319,8 @@ class _StatsPageState extends State<StatsPage> {
                                     backgroundColor: const Color(0xFFF0F1F2),
                                     valueColor:
                                         const AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF0C6D6A),
-                                    ),
+                                          Color(0xFF0C6D6A),
+                                        ),
                                   ),
                                 ),
                               ],
@@ -406,9 +416,11 @@ List<TransactionEntry> _filterTransactions(
 
   switch (range) {
     case StatsRange.week:
-      start = DateTime(now.year, now.month, now.day).subtract(
-        const Duration(days: 6),
-      );
+      start = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(days: 6));
       break;
     case StatsRange.month:
       start = DateTime(now.year, now.month, 1);
@@ -437,8 +449,11 @@ List<_CategoryStat> _buildCategoryStats(
       continue;
     }
     final key = _normalizeCategoryKey(entry.category);
-    totals.update(key, (value) => value + entry.amount,
-        ifAbsent: () => entry.amount);
+    totals.update(
+      key,
+      (value) => value + entry.amount,
+      ifAbsent: () => entry.amount,
+    );
   }
 
   final stats = totals.entries
@@ -466,15 +481,21 @@ List<double> _buildTrend(List<TransactionEntry> entries) {
       continue;
     }
 
-    final entryDay =
-        DateTime(entry.createdAt.year, entry.createdAt.month, entry.createdAt.day);
+    final entryDay = DateTime(
+      entry.createdAt.year,
+      entry.createdAt.month,
+      entry.createdAt.day,
+    );
     final diff = today.difference(entryDay).inDays;
     if (diff >= 0 && diff < 7) {
       totals[6 - diff] += entry.amount;
     }
   }
 
-  final maxTotal = totals.fold<double>(0, (value, element) => max(value, element));
+  final maxTotal = totals.fold<double>(
+    0,
+    (value, element) => max(value, element),
+  );
   if (maxTotal == 0) {
     return List<double>.filled(7, 0);
   }

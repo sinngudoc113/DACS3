@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'add_transaction_page.dart';
+import 'budget_page.dart';
 import 'dashboard_page.dart';
+import 'history_page.dart';
 import 'stats_page.dart';
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
+import '../services/budget_service.dart';
 import '../services/transaction_service.dart';
 
 class HomeShell extends StatefulWidget {
@@ -19,12 +22,15 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   late final TransactionService _service;
+  late final BudgetService _budgetService;
 
   @override
   void initState() {
     super.initState();
-    _service =
-        widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _service = widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _budgetService = widget.service == null
+        ? BudgetService.node(baseUrl: apiBaseUrl())
+        : BudgetService.memory();
   }
 
   @override
@@ -33,6 +39,8 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       DashboardPage(service: _service),
       AddTransactionPage(service: _service),
+      HistoryPage(service: _service),
+      BudgetPage(transactionService: _service, budgetService: _budgetService),
       StatsPage(service: _service),
     ];
 
@@ -51,6 +59,16 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
             label: l10n.navAdd,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
+            label: l10n.navHistory,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.savings_outlined),
+            selectedIcon: Icon(Icons.savings),
+            label: l10n.navBudget,
           ),
           NavigationDestination(
             icon: Icon(Icons.stacked_bar_chart_outlined),

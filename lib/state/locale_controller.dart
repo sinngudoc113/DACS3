@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class LocaleController extends ChangeNotifier {
   LocaleController({Locale? initialLocale})
-      : _locale = initialLocale ?? const Locale('vi');
+    : _locale = initialLocale ?? const Locale('vi');
 
   Locale _locale;
 
@@ -18,8 +18,11 @@ class LocaleController extends ChangeNotifier {
 }
 
 class LocaleScope extends InheritedNotifier<LocaleController> {
-  const LocaleScope({super.key, required LocaleController controller, required Widget child})
-      : super(notifier: controller, child: child);
+  const LocaleScope({
+    super.key,
+    required LocaleController controller,
+    required Widget child,
+  }) : super(notifier: controller, child: child);
 
   static LocaleController of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<LocaleScope>();

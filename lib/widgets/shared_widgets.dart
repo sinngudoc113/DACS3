@@ -88,10 +88,7 @@ class PageHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (trailing != null) ...[
-          const SizedBox(width: 12),
-          trailing!,
-        ],
+        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
       ],
     );
   }
@@ -149,8 +146,8 @@ class InfoCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF6D7573),
-                      ),
+                    color: const Color(0xFF6D7573),
+                  ),
                 ),
               ],
             ),

@@ -75,12 +75,13 @@ class _DashboardPageState extends State<DashboardPage>
                 final totals = _TransactionTotals.fromEntries(transactions);
                 var userName = '';
                 if (Firebase.apps.isNotEmpty) {
-                  userName = FirebaseAuth.instance.currentUser?.displayName
-                          ?.trim() ??
+                  userName =
+                      FirebaseAuth.instance.currentUser?.displayName?.trim() ??
                       '';
                 }
-                final greetingName =
-                    userName.isEmpty ? l10n.defaultUserName : userName;
+                final greetingName = userName.isEmpty
+                    ? l10n.defaultUserName
+                    : userName;
                 final summaryNote = transactions.isEmpty
                     ? l10n.noTransactionsSummary
                     : l10n.transactionsThisMonth(transactions.length);
@@ -131,7 +132,11 @@ class _DashboardPageState extends State<DashboardPage>
 }
 
 class AnimatedSection extends StatelessWidget {
-  const AnimatedSection({super.key, required this.animation, required this.child});
+  const AnimatedSection({
+    super.key,
+    required this.animation,
+    required this.child,
+  });
 
   final Animation<double> animation;
   final Widget child;
@@ -303,9 +308,7 @@ class _MetricPill extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-            ),
+            style: textTheme.titleLarge?.copyWith(color: Colors.white),
           ),
         ],
       ),
@@ -379,7 +382,10 @@ class _QuickActions extends StatelessWidget {
                   color: const Color(0xFFFDECF1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.flag_outlined, color: Color(0xFFB8335B)),
+                child: const Icon(
+                  Icons.flag_outlined,
+                  color: Color(0xFFB8335B),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -394,8 +400,8 @@ class _QuickActions extends StatelessWidget {
                     Text(
                       l10n.budgetPaceSubtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFF6D7573),
-                          ),
+                        color: const Color(0xFF6D7573),
+                      ),
                     ),
                     const SizedBox(height: 10),
                     ClipRRect(
@@ -459,16 +465,16 @@ class _ActionTile extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: const Color(0xFF1E2D2B),
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: const Color(0xFF1E2D2B)),
           ),
           const SizedBox(height: 6),
           Text(
             hint,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF5C6B68),
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: const Color(0xFF5C6B68)),
           ),
         ],
       ),
@@ -502,9 +508,9 @@ class _RecentTransactions extends StatelessWidget {
             ),
             child: Text(
               l10n.noTransactions,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF6D7573),
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6D7573)),
             ),
           )
         else
@@ -533,7 +539,7 @@ class _TransactionTile extends StatelessWidget {
     final amountLabel = formatSignedCurrency(signedAmount);
     final categoryKey = _normalizeCategoryKey(item.category);
     final categoryStyle =
-      _categoryStyles[categoryKey] ?? _categoryStyles['other']!;
+        _categoryStyles[categoryKey] ?? _categoryStyles['other']!;
     final categoryLabel = l10n.categoryName(categoryKey);
     final subtitle = item.note.isNotEmpty ? item.note : categoryLabel;
 
@@ -571,8 +577,8 @@ class _TransactionTile extends StatelessWidget {
                 Text(
                   subtitle,
                   style: textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF6D7573),
-                      ),
+                    color: const Color(0xFF6D7573),
+                  ),
                 ),
               ],
             ),
@@ -580,7 +586,9 @@ class _TransactionTile extends StatelessWidget {
           Text(
             amountLabel,
             style: textTheme.titleMedium?.copyWith(
-              color: isExpense ? const Color(0xFFB8335B) : const Color(0xFF0C6D6A),
+              color: isExpense
+                  ? const Color(0xFFB8335B)
+                  : const Color(0xFF0C6D6A),
             ),
           ),
         ],
@@ -612,7 +620,9 @@ class _SectionHeader extends StatelessWidget {
           onPressed: onTap,
           style: TextButton.styleFrom(
             foregroundColor: const Color(0xFF0C6D6A),
-            textStyle: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            textStyle: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           child: Text(actionLabel),
         ),

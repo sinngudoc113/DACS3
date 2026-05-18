@@ -11,16 +11,16 @@ class TransactionService {
     required String baseUrl,
     AuthService? authService,
     http.Client? client,
-  })  : _api = _TransactionApi(
-          baseUrl: baseUrl,
-          authService: authService ?? AuthService(),
-          client: client ?? http.Client(),
-        ),
-        _store = ValueNotifier<List<TransactionEntry>>([]);
+  }) : _api = _TransactionApi(
+         baseUrl: baseUrl,
+         authService: authService ?? AuthService(),
+         client: client ?? http.Client(),
+       ),
+       _store = ValueNotifier<List<TransactionEntry>>([]);
 
   TransactionService.memory({List<TransactionEntry>? seed})
-      : _api = null,
-        _store = ValueNotifier<List<TransactionEntry>>(seed ?? []);
+    : _api = null,
+      _store = ValueNotifier<List<TransactionEntry>>(seed ?? []);
 
   final _TransactionApi? _api;
   final ValueNotifier<List<TransactionEntry>> _store;
@@ -110,7 +110,9 @@ class _TransactionApi {
     );
 
     if (response.statusCode != 201) {
-      throw StateError('Failed to create transaction (${response.statusCode}).');
+      throw StateError(
+        'Failed to create transaction (${response.statusCode}).',
+      );
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -125,7 +127,9 @@ class _TransactionApi {
     );
 
     if (response.statusCode != 200) {
-      throw StateError('Failed to update transaction (${response.statusCode}).');
+      throw StateError(
+        'Failed to update transaction (${response.statusCode}).',
+      );
     }
   }
 
@@ -136,7 +140,9 @@ class _TransactionApi {
     );
 
     if (response.statusCode != 204) {
-      throw StateError('Failed to delete transaction (${response.statusCode}).');
+      throw StateError(
+        'Failed to delete transaction (${response.statusCode}).',
+      );
     }
   }
 

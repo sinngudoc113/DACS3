@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
+import '../models/receipt_draft.dart';
 import '../models/transaction_entry.dart';
 import '../services/transaction_service.dart';
 import '../widgets/shared_widgets.dart';
 
 class AddTransactionPage extends StatefulWidget {
-  const AddTransactionPage({super.key, this.service});
+  const AddTransactionPage({super.key, this.service, this.prefill});
 
   final TransactionService? service;
+  final ReceiptDraft? prefill;
 
   @override
   State<AddTransactionPage> createState() => _AddTransactionPageState();
@@ -22,6 +24,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   TransactionType _type = TransactionType.expense;
   int _selectedCategory = 0;
   bool _isSaving = false;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 40);
+  String _selectedAccount = 'Thẻ hằng ngày';
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -66,6 +71,42 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   void initState() {
     super.initState();
     _service = widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _applyPrefill(widget.prefill);
+  }
+
+  void _applyPrefill(ReceiptDraft? draft) {
+    if (draft == null) {
+      return;
+    }
+
+    _amountController.text = draft.amount.toStringAsFixed(0);
+    _titleController.text = draft.shopName.isNotEmpty
+        ? draft.shopName
+        : draft.description;
+    _noteController.text = draft.description;
+    final mappedIndex = _mapReceiptCategory(draft.category);
+    if (mappedIndex != null) {
+      _selectedCategory = mappedIndex;
+    }
+  }
+
+  int? _mapReceiptCategory(String category) {
+    switch (category) {
+      case 'An uong':
+      case 'Ăn uống':
+        return _categories.indexWhere((item) => item.keyName == 'food');
+      case 'Di chuyen':
+      case 'Di chuyển':
+        return _categories.indexWhere((item) => item.keyName == 'travel');
+      case 'Mua sam':
+      case 'Mua sắm':
+        return _categories.indexWhere((item) => item.keyName == 'shopping');
+      case 'Hoa don':
+      case 'Hóa đơn':
+        return _categories.indexWhere((item) => item.keyName == 'bills');
+      default:
+        return null;
+    }
   }
 
   Future<void> _saveTransaction() async {
@@ -93,7 +134,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       type: _type,
       category: _categories[_selectedCategory].keyName,
       note: _noteController.text.trim(),
-      createdAt: DateTime.now(),
+      createdAt: DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      ),
       userId: '',
     );
 
@@ -130,6 +177,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     final accent = _type == TransactionType.expense
         ? const Color(0xFFB8335B)
         : const Color(0xFF0C6D6A);
+    final scheduleLabel = _formatSchedule(context);
 
     return Stack(
       children: [
@@ -310,15 +358,17 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   InfoCard(
                     icon: Icons.schedule_outlined,
                     title: l10n.schedule,
-                    subtitle: l10n.scheduleSubtitle,
+                    subtitle: scheduleLabel,
                     accent: accent,
+                    onTap: () => _pickSchedule(context),
                   ),
                   const SizedBox(height: 20),
                   InfoCard(
                     icon: Icons.account_balance_wallet_outlined,
                     title: l10n.account,
-                    subtitle: l10n.accountSubtitle,
+                    subtitle: _selectedAccount,
                     accent: accent,
+                    onTap: () => _pickAccount(context),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -332,6 +382,69 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
       ],
     );
+  }
+
+  String _formatSchedule(BuildContext context) {
+    final dateLabel = MaterialLocalizations.of(
+      context,
+    ).formatMediumDate(_selectedDate);
+    final timeLabel = _selectedTime.format(context);
+    return '$dateLabel, $timeLabel';
+  }
+
+  Future<void> _pickSchedule(BuildContext context) async {
+    final now = DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 1),
+    );
+    if (pickedDate == null) {
+      return;
+    }
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+
+    setState(() {
+      _selectedDate = pickedDate;
+      if (pickedTime != null) {
+        _selectedTime = pickedTime;
+      }
+    });
+  }
+
+  Future<void> _pickAccount(BuildContext context) async {
+    final options = ['Thẻ hằng ngày', 'Tiền mặt', 'Ví ngân hàng'];
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: options.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final option = options[index];
+            return ListTile(
+              title: Text(option),
+              trailing: option == _selectedAccount
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.of(context).pop(option),
+            );
+          },
+        ),
+      ),
+    );
+
+    if (selected == null) {
+      return;
+    }
+
+    setState(() => _selectedAccount = selected);
   }
 }
 

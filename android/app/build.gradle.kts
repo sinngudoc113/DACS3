@@ -38,7 +38,24 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
+    }
+}
+
+val flutterApkOutputDir = rootProject.projectDir.parentFile
+    .resolve("build/app/outputs/flutter-apk")
+
+tasks.register<Copy>("copyDebugApkToFlutter") {
+    val apkDir = layout.buildDirectory.dir("outputs/flutter-apk")
+    from(apkDir.map { it.file("app-debug.apk") })
+    into(flutterApkOutputDir)
+}
+
+afterEvaluate {
+    tasks.matching { it.name == "assembleDebug" }.configureEach {
+        finalizedBy("copyDebugApkToFlutter")
     }
 }
 

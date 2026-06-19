@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -69,7 +70,10 @@ class AuthService {
        _client = client ?? http.Client(),
        _baseUrl = baseUrl ?? apiBaseUrl() {
     _auth.authStateChanges().listen((user) {
-      // Luôn update khi Firebase auth state thay đổi
+      // Nếu đang dùng local token thì không để Firebase override.
+      if (_localToken != null) {
+        return;
+      }
       _currentUser = _userFromFirebase(user);
       _controller.add(_currentUser);
     });
@@ -231,11 +235,26 @@ class AuthService {
     Map<String, dynamic> body, {
     Map<String, String>? headers,
   }) async {
-    final response = await _client.post(
-      Uri.parse('$_baseUrl$path'),
-      headers: {'Content-Type': 'application/json', ...?headers},
-      body: jsonEncode(body),
-    );
+    http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse('$_baseUrl$path'),
+            headers: {'Content-Type': 'application/json', ...?headers},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 12));
+    } on SocketException {
+      throw const AuthServiceException(
+        'network',
+        'Cannot reach the server. Check API and emulator network.',
+      );
+    } on TimeoutException {
+      throw const AuthServiceException(
+        'timeout',
+        'Server timeout. Please try again.',
+      );
+    }
 
     final data = response.body.isEmpty
         ? <String, dynamic>{}

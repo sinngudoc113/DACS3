@@ -21,7 +21,7 @@ class DecorativeBackground extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Color(0xFFE2F3EE), Color(0x00E2F3EE)],
+                colors: [Color(0xFFDDF1F7), Color(0x00DDF1F7)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -37,7 +37,7 @@ class DecorativeBackground extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Color(0xFFFFE6D6), Color(0x00FFE6D6)],
+                colors: [Color(0xFFD5EEF3), Color(0x00D5EEF3)],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
@@ -101,18 +101,20 @@ class InfoCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.accent,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final Color accent;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
+    final content = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -152,9 +154,19 @@ class InfoCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: accent),
+          if (onTap != null) Icon(Icons.chevron_right, color: accent),
         ],
       ),
+    );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: content,
     );
   }
 }

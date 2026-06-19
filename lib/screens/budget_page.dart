@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
@@ -25,6 +26,9 @@ class _BudgetPageState extends State<BudgetPage> {
   final TextEditingController _limitController = TextEditingController();
   String _selectedCategory = 'overall';
   bool _isSaving = false;
+  bool _reminderEnabled = false;
+
+  static const _reminderKey = 'daily_reminder_enabled';
 
   @override
   void initState() {
@@ -36,12 +40,35 @@ class _BudgetPageState extends State<BudgetPage> {
         widget.budgetService ?? BudgetService.node(baseUrl: apiBaseUrl());
     _transactionService.load();
     _budgetService.load();
+    _loadReminderPreference();
   }
 
   @override
   void dispose() {
     _limitController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadReminderPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _reminderEnabled = prefs.getBool(_reminderKey) ?? false);
+  }
+
+  Future<void> _toggleReminder(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_reminderKey, value);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _reminderEnabled = value);
+    final l10n = AppLocalizations.of(context);
+    final message = value ? l10n.reminderEnabled : l10n.reminderDisabled;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _saveBudget() async {
@@ -220,6 +247,8 @@ class _BudgetPageState extends State<BudgetPage> {
                         _ReminderCard(
                           title: l10n.dailyReminder,
                           subtitle: l10n.dailyReminderSubtitle,
+                          enabled: _reminderEnabled,
+                          onChanged: _toggleReminder,
                         ),
                       ],
                     ),
@@ -318,10 +347,17 @@ class _EmptyBudgetCard extends StatelessWidget {
 }
 
 class _ReminderCard extends StatelessWidget {
-  const _ReminderCard({required this.title, required this.subtitle});
+  const _ReminderCard({
+    required this.title,
+    required this.subtitle,
+    required this.enabled,
+    required this.onChanged,
+  });
 
   final String title;
   final String subtitle;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +366,7 @@ class _ReminderCard extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       accent: const Color(0xFFB8335B),
+      onTap: () => onChanged(!enabled),
     );
   }
 }

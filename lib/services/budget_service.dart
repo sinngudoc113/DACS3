@@ -41,7 +41,11 @@ class BudgetService {
     if (api == null) {
       return;
     }
-    _store.value = await api.fetchBudgets();
+    try {
+      _store.value = await api.fetchBudgets();
+    } catch (_) {
+      _store.value = const [];
+    }
   }
 
   Future<void> upsertBudget(MonthlyBudget budget) async {

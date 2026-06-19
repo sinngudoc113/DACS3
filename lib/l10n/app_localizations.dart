@@ -23,18 +23,19 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _values = {
     'en': {
-      'appTitle': 'Pulse Budget',
+      'appTitle': 'EggTrack',
       'navHome': 'Home',
       'navAdd': 'Add',
       'navHistory': 'History',
       'navBudget': 'Budget',
+      'navGroupFund': 'Group fund',
       'navStats': 'Stats',
       'language': 'Language',
       'languageEnglish': 'English',
       'languageVietnamese': 'Vietnamese',
       'signOut': 'Sign out',
       'greeting': 'Hello, {name}',
-      'dashboardSubtitle': 'Here is your money flow for the week.',
+      'dashboardSubtitle': 'Track every egg in your money basket.',
       'totalBalance': 'Total balance',
       'income': 'Income',
       'spent': 'Spent',
@@ -82,9 +83,30 @@ class AppLocalizations {
       'authEmailInUse': 'Email already in use.',
       'insightsTitle': 'Insights',
       'insightsSubtitle': 'This month overview',
+      'statsTitle': 'Cashflow movement',
       'week': 'Week',
       'month': 'Month',
       'year': 'Year',
+      'difference': 'Difference',
+      'selectMonth': 'Selected month',
+      'selectYear': 'Selected year',
+      'trendTitle': 'Movement',
+      'compareSamePeriod': 'Compare period',
+      'periodWeek': 'last week',
+      'periodMonth': 'last month',
+      'periodYear': 'last year',
+      'currentWeek': 'last 7 days',
+      'currentMonth': 'selected month',
+      'currentYear': 'selected year',
+      'totalIncomeForRange': 'Total income {range}',
+      'totalExpenseForRange': 'Total spending {range}',
+      'totalDifferenceForRange': 'Total difference {range}',
+      'increaseComparedTo': 'Up {amount} vs {range}',
+      'decreaseComparedTo': 'Down {amount} vs {range}',
+      'balanceBreakdown': 'Monthly breakdown',
+      'detailByMonth': 'Monthly breakdown',
+      'detailByDay': 'Daily breakdown',
+      'childCategories': 'Child categories',
       'totalSpending': 'Total spending',
       'monthlyTrend': 'Monthly trend',
       'spendingPulse': 'Spending pulse',
@@ -106,11 +128,29 @@ class AppLocalizations {
       'saveBudget': 'Save budget',
       'budgetSaved': 'Budget saved.',
       'budgetSaveFailed': 'Failed to save budget: {error}',
+      'groupFundTitle': 'Group fund',
+      'groupFundSubtitle': 'Create a shared fund and track money together.',
+      'groupFundGoogleOnlyTitle': 'Google account required',
+      'groupFundGoogleOnlySubtitle':
+          'Group funds use Google identity so leaders can invite members safely.',
+      'signInWithGoogleToUse': 'Sign in with Google to use group funds',
+      'createGroupFund': 'Create group fund',
+      'groupFundName': 'Fund name',
+      'inviteMember': 'Invite member',
+      'memberEmail': 'Member email',
+      'addFundTransaction': 'Add fund transaction',
+      'noGroupFunds': 'No group funds yet. Create one to start.',
+      'fundMembers': 'Members',
+      'fundBalance': 'Fund balance',
+      'leader': 'Leader',
+      'member': 'Member',
       'currentBudgetProgress': 'Current progress',
       'noBudgetYet': 'No budget has been set for this month.',
       'dailyReminder': 'Daily recording reminder',
       'dailyReminderSubtitle':
           'Open the app every evening to keep your spending history complete.',
+      'reminderEnabled': 'Daily reminder enabled.',
+      'reminderDisabled': 'Daily reminder disabled.',
       'overallBudget': 'Overall budget',
       'authLoginTitle': 'Welcome back',
       'authRegisterTitle': 'Create an account',
@@ -147,16 +187,19 @@ class AppLocalizations {
       'defaultUserName': 'friend',
     },
     'vi': {
-      'appTitle': 'Pulse Budget',
+      'appTitle': 'EggTrack',
       'navHome': 'Trang chủ',
       'navAdd': 'Thêm',
+      'navHistory': 'Lịch sử',
+      'navBudget': 'Ngân sách',
+      'navGroupFund': 'Quỹ nhóm',
       'navStats': 'Thống kê',
       'language': 'Ngôn ngữ',
       'languageEnglish': 'Tiếng Anh',
       'languageVietnamese': 'Tiếng Việt',
       'signOut': 'Đăng xuất',
       'greeting': 'Xin chào, {name}',
-      'dashboardSubtitle': 'Dòng tiền tuần này của bạn.',
+      'dashboardSubtitle': 'Theo dõi từng khoản tiền trong giỏ EggTrack.',
       'totalBalance': 'Số dư tổng',
       'income': 'Thu nhập',
       'spent': 'Chi tiêu',
@@ -196,15 +239,75 @@ class AppLocalizations {
       'enterValidAmount': 'Số tiền không hợp lệ.',
       'transactionSaved': 'Đã lưu giao dịch.',
       'transactionSaveFailed': 'Lưu thất bại: {error}',
+      'transactionDeleted': 'Đã xóa giao dịch.',
+      'transactionDeleteFailed': 'Xóa thất bại: {error}',
+      'historyTitle': 'Lịch sử giao dịch',
+      'historySubtitle': 'Tìm kiếm, lọc và quản lý mọi giao dịch.',
+      'searchTransactions': 'Tìm giao dịch',
+      'allTransactions': 'Tất cả',
+      'historyCount': '{count} giao dịch phù hợp',
+      'noMatchingTransactions': 'Không tìm thấy giao dịch phù hợp.',
+      'budgetTitle': 'Ngân sách tháng',
+      'budgetSubtitle': 'Đặt giới hạn và theo dõi tốc độ chi tiêu.',
+      'setMonthlyBudget': 'Đặt hạn mức tháng',
+      'budgetLimitLabel': 'Hạn mức ngân sách',
+      'saveBudget': 'Lưu ngân sách',
+      'budgetSaved': 'Đã lưu ngân sách.',
+      'budgetSaveFailed': 'Lưu ngân sách thất bại: {error}',
+      'currentBudgetProgress': 'Tiến độ hiện tại',
+      'noBudgetYet': 'Chưa đặt ngân sách cho tháng này.',
+      'dailyReminder': 'Nhắc ghi chép hằng ngày',
+      'dailyReminderSubtitle':
+          'Mở ứng dụng mỗi tối để giữ lịch sử chi tiêu đầy đủ.',
+      'reminderEnabled': 'Đã bật nhắc ghi chép hằng ngày.',
+      'reminderDisabled': 'Đã tắt nhắc ghi chép hằng ngày.',
+      'overallBudget': 'Ngân sách tổng',
+      'groupFundTitle': 'Quỹ nhóm',
+      'groupFundSubtitle': 'Tạo quỹ chung và theo dõi tiền cùng nhau.',
+      'groupFundGoogleOnlyTitle': 'Cần tài khoản Google',
+      'groupFundGoogleOnlySubtitle':
+          'Quỹ nhóm dùng danh tính Google để trưởng nhóm mời thành viên an toàn.',
+      'signInWithGoogleToUse': 'Đăng nhập Google để dùng Quỹ nhóm',
+      'createGroupFund': 'Tạo Quỹ nhóm',
+      'groupFundName': 'Tên quỹ',
+      'inviteMember': 'Mời thành viên',
+      'memberEmail': 'Email thành viên',
+      'addFundTransaction': 'Thêm giao dịch quỹ',
+      'noGroupFunds': 'Chưa có Quỹ nhóm. Hãy tạo một quỹ để bắt đầu.',
+      'fundMembers': 'Thành viên',
+      'fundBalance': 'Số dư quỹ',
+      'leader': 'Trưởng nhóm',
+      'member': 'Thành viên',
       'processing': 'Đang xử lý...',
       'requiredField': 'Không được để trống.',
       'invalidEmail': 'Email không hợp lệ.',
       'authEmailInUse': 'Email đã tồn tại.',
       'insightsTitle': 'Thống kê',
       'insightsSubtitle': 'Tổng quan tháng này',
+      'statsTitle': 'Biến động thu chi',
       'week': 'Tuần',
       'month': 'Tháng',
       'year': 'Năm',
+      'difference': 'Chênh lệch',
+      'selectMonth': 'Chọn tháng',
+      'selectYear': 'Chọn năm',
+      'trendTitle': 'Biến động',
+      'compareSamePeriod': 'So với cùng kỳ',
+      'periodWeek': 'tuần trước',
+      'periodMonth': 'tháng trước',
+      'periodYear': 'năm trước',
+      'currentWeek': '7 ngày gần nhất',
+      'currentMonth': 'tháng đang chọn',
+      'currentYear': 'năm đang chọn',
+      'totalIncomeForRange': 'Tổng thu {range}',
+      'totalExpenseForRange': 'Tổng chi {range}',
+      'totalDifferenceForRange': 'Tổng chênh lệch {range}',
+      'increaseComparedTo': 'Tăng {amount} so với cùng kỳ {range}',
+      'decreaseComparedTo': 'Giảm {amount} so với cùng kỳ {range}',
+      'balanceBreakdown': 'Chi tiết theo tháng',
+      'detailByMonth': 'Chi tiết theo tháng',
+      'detailByDay': 'Chi tiết theo ngày',
+      'childCategories': 'Danh mục con',
       'totalSpending': 'Tổng chi tiêu',
       'monthlyTrend': 'Xu hướng tháng',
       'spendingPulse': 'Nhịp chi tiêu',
@@ -267,6 +370,7 @@ class AppLocalizations {
   String get navAdd => _text('navAdd');
   String get navHistory => _text('navHistory');
   String get navBudget => _text('navBudget');
+  String get navGroupFund => _text('navGroupFund');
   String get navStats => _text('navStats');
   String get language => _text('language');
   String get languageEnglish => _text('languageEnglish');
@@ -317,9 +421,35 @@ class AppLocalizations {
   String get authEmailInUse => _text('authEmailInUse');
   String get insightsTitle => _text('insightsTitle');
   String get insightsSubtitle => _text('insightsSubtitle');
+  String get statsTitle => _text('statsTitle');
   String get week => _text('week');
   String get month => _text('month');
   String get year => _text('year');
+  String get difference => _text('difference');
+  String get selectMonth => _text('selectMonth');
+  String get selectYear => _text('selectYear');
+  String get trendTitle => _text('trendTitle');
+  String get compareSamePeriod => _text('compareSamePeriod');
+  String get periodWeek => _text('periodWeek');
+  String get periodMonth => _text('periodMonth');
+  String get periodYear => _text('periodYear');
+  String get currentWeek => _text('currentWeek');
+  String get currentMonth => _text('currentMonth');
+  String get currentYear => _text('currentYear');
+  String totalIncomeForRange(String range) =>
+      _format('totalIncomeForRange', {'range': range});
+  String totalExpenseForRange(String range) =>
+      _format('totalExpenseForRange', {'range': range});
+  String totalDifferenceForRange(String range) =>
+      _format('totalDifferenceForRange', {'range': range});
+  String increaseComparedTo(String amount, String range) =>
+      _format('increaseComparedTo', {'amount': amount, 'range': range});
+  String decreaseComparedTo(String amount, String range) =>
+      _format('decreaseComparedTo', {'amount': amount, 'range': range});
+  String get balanceBreakdown => _text('balanceBreakdown');
+  String get detailByMonth => _text('detailByMonth');
+  String get detailByDay => _text('detailByDay');
+  String get childCategories => _text('childCategories');
   String get totalSpending => _text('totalSpending');
   String get monthlyTrend => _text('monthlyTrend');
   String get spendingPulse => _text('spendingPulse');
@@ -338,10 +468,28 @@ class AppLocalizations {
   String get budgetLimitLabel => _text('budgetLimitLabel');
   String get saveBudget => _text('saveBudget');
   String get budgetSaved => _text('budgetSaved');
+  String get groupFundTitle => _text('groupFundTitle');
+  String get groupFundSubtitle => _text('groupFundSubtitle');
+  String get groupFundGoogleOnlyTitle => _text('groupFundGoogleOnlyTitle');
+  String get groupFundGoogleOnlySubtitle =>
+      _text('groupFundGoogleOnlySubtitle');
+  String get signInWithGoogleToUse => _text('signInWithGoogleToUse');
+  String get createGroupFund => _text('createGroupFund');
+  String get groupFundName => _text('groupFundName');
+  String get inviteMember => _text('inviteMember');
+  String get memberEmail => _text('memberEmail');
+  String get addFundTransaction => _text('addFundTransaction');
+  String get noGroupFunds => _text('noGroupFunds');
+  String get fundMembers => _text('fundMembers');
+  String get fundBalance => _text('fundBalance');
+  String get leader => _text('leader');
+  String get member => _text('member');
   String get currentBudgetProgress => _text('currentBudgetProgress');
   String get noBudgetYet => _text('noBudgetYet');
   String get dailyReminder => _text('dailyReminder');
   String get dailyReminderSubtitle => _text('dailyReminderSubtitle');
+  String get reminderEnabled => _text('reminderEnabled');
+  String get reminderDisabled => _text('reminderDisabled');
   String get overallBudget => _text('overallBudget');
   String get authLoginTitle => _text('authLoginTitle');
   String get authRegisterTitle => _text('authRegisterTitle');

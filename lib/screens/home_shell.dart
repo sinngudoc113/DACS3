@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'add_transaction_page.dart';
 import 'budget_page.dart';
 import 'dashboard_page.dart';
+import 'group_fund_page.dart';
 import 'history_page.dart';
 import 'stats_page.dart';
 import '../config/api_config.dart';
@@ -37,11 +38,18 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pages = [
-      DashboardPage(service: _service),
+      DashboardPage(
+        service: _service,
+        onNavigateToTab: (value) => setState(() => _index = value),
+      ),
       AddTransactionPage(service: _service),
       HistoryPage(service: _service),
       BudgetPage(transactionService: _service, budgetService: _budgetService),
-      StatsPage(service: _service),
+      const GroupFundPage(),
+      StatsPage(
+        service: _service,
+        onNavigateHome: () => setState(() => _index = 0),
+      ),
     ];
 
     return Scaffold(
@@ -69,6 +77,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.savings_outlined),
             selectedIcon: Icon(Icons.savings),
             label: l10n.navBudget,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.groups_2_outlined),
+            selectedIcon: Icon(Icons.groups_2),
+            label: l10n.navGroupFund,
           ),
           NavigationDestination(
             icon: Icon(Icons.stacked_bar_chart_outlined),

@@ -10,6 +10,7 @@ class TransactionEntry {
     required this.note,
     required this.createdAt,
     required this.userId,
+    this.userEmail = '',
   });
 
   final String id;
@@ -20,6 +21,7 @@ class TransactionEntry {
   final String note;
   final DateTime createdAt;
   final String userId;
+  final String userEmail;
 
   Map<String, dynamic> toJson() {
     return {
@@ -31,6 +33,7 @@ class TransactionEntry {
       'note': note,
       'createdAt': createdAt.toIso8601String(),
       'userId': userId,
+      'userEmail': userEmail,
     };
   }
 
@@ -55,6 +58,7 @@ class TransactionEntry {
       note: json['note'] as String? ?? '',
       createdAt: createdAt,
       userId: json['userId'] as String? ?? '',
+      userEmail: json['userEmail'] as String? ?? '',
     );
   }
 }

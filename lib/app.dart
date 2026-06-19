@@ -1,10 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'l10n/app_localizations.dart';
-import 'screens/home_shell.dart';
+import 'screens/auth_gate.dart';
 import 'firebase_options.dart';
 import 'services/transaction_service.dart';
 import 'state/locale_controller.dart';
@@ -61,8 +60,7 @@ class FinanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTextTheme = GoogleFonts.workSansTextTheme();
-    final displayTextTheme = GoogleFonts.dmSerifDisplayTextTheme();
+    final baseTextTheme = ThemeData.light().textTheme;
 
     return AnimatedBuilder(
       animation: localeController,
@@ -83,16 +81,10 @@ class FinanceApp extends StatelessWidget {
             theme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF0C6D6A),
+                seedColor: const Color(0xFF14C8C3),
                 brightness: Brightness.light,
               ),
               textTheme: baseTextTheme.copyWith(
-                displayLarge: displayTextTheme.displayLarge,
-                displayMedium: displayTextTheme.displayMedium,
-                displaySmall: displayTextTheme.displaySmall,
-                headlineLarge: displayTextTheme.headlineLarge,
-                headlineMedium: displayTextTheme.headlineMedium,
-                headlineSmall: displayTextTheme.headlineSmall,
                 titleLarge: baseTextTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -102,17 +94,17 @@ class FinanceApp extends StatelessWidget {
                 bodyLarge: baseTextTheme.bodyLarge?.copyWith(height: 1.3),
                 bodyMedium: baseTextTheme.bodyMedium?.copyWith(height: 1.3),
               ),
-              scaffoldBackgroundColor: const Color(0xFFF7F4EE),
+              scaffoldBackgroundColor: const Color(0xFFEFFFF9),
               appBarTheme: const AppBarTheme(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
               ),
               navigationBarTheme: NavigationBarThemeData(
                 backgroundColor: Colors.white,
-                indicatorColor: const Color(0xFFE2F3EE),
+                indicatorColor: const Color(0xFFB8EFE0),
                 labelTextStyle: WidgetStateProperty.resolveWith((states) {
                   final color = states.contains(WidgetState.selected)
-                      ? const Color(0xFF0C6D6A)
+                      ? const Color(0xFF0F766E)
                       : const Color(0xFF6D7573);
                   return baseTextTheme.labelSmall?.copyWith(
                     color: color,
@@ -121,14 +113,14 @@ class FinanceApp extends StatelessWidget {
                 }),
                 iconTheme: WidgetStateProperty.resolveWith((states) {
                   final color = states.contains(WidgetState.selected)
-                      ? const Color(0xFF0C6D6A)
+                      ? const Color(0xFF0F766E)
                       : const Color(0xFF6D7573);
                   return IconThemeData(color: color);
                 }),
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0C6D6A),
+                  backgroundColor: const Color(0xFF12B7C8),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
@@ -150,12 +142,12 @@ class FinanceApp extends StatelessWidget {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: const BorderSide(
-                    color: Color(0xFF0C6D6A),
+                    color: Color(0xFF12B7C8),
                     width: 1.4,
                   ),
                 ),
                 labelStyle: baseTextTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF6D7573),
+                  color: const Color(0xFF0B1F2A),
                 ),
               ),
               cardTheme: CardThemeData(
@@ -166,7 +158,7 @@ class FinanceApp extends StatelessWidget {
                 ),
               ),
             ),
-            home: HomeShell(service: service),
+            home: AuthGate(service: service),
           ),
         );
       },

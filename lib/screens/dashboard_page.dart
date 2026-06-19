@@ -1,17 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
 import '../models/transaction_entry.dart';
 import '../services/auth_service.dart';
+import '../services/receipt_ai_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/currency_format.dart';
 import '../widgets/shared_widgets.dart';
+import 'add_transaction_page.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key, this.service});
+  const DashboardPage({super.key, this.service, this.onNavigateToTab});
 
   final TransactionService? service;
+  final ValueChanged<int>? onNavigateToTab;
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -25,6 +31,9 @@ class _DashboardPageState extends State<DashboardPage>
   late final Animation<double> _actionsAnimation;
   late final Animation<double> _transactionsAnimation;
   late final TransactionService _service;
+  bool _isAnalyzingReceipt = false;
+  final ReceiptAiService _receiptAiService = ReceiptAiService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -104,7 +113,11 @@ class _DashboardPageState extends State<DashboardPage>
                       const SizedBox(height: 24),
                       AnimatedSection(
                         animation: _actionsAnimation,
-                        child: _QuickActions(l10n: l10n),
+                        child: _QuickActions(
+                          l10n: l10n,
+                          onNavigateToTab: widget.onNavigateToTab,
+                          onScanReceipt: () => _showReceiptSheet(context),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       AnimatedSection(
@@ -120,9 +133,88 @@ class _DashboardPageState extends State<DashboardPage>
               },
             ),
           ),
+          if (_isAnalyzingReceipt) const _ReceiptLoadingOverlay(),
         ],
       ),
     );
+  }
+
+  Future<void> _showReceiptSheet(BuildContext context) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Chụp ảnh mới'),
+              onTap: () => Navigator.of(context).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Chọn từ thư viện'),
+              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) {
+      return;
+    }
+
+    final picked = await _imagePicker.pickImage(
+      source: source,
+      maxWidth: 720,
+      maxHeight: 1280,
+      imageQuality: 60,
+    );
+
+    if (picked == null || !mounted) {
+      return;
+    }
+
+    setState(() => _isAnalyzingReceipt = true);
+
+    try {
+      final draft = await _receiptAiService.analyzeReceiptWithAI(
+        File(picked.path),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isAnalyzingReceipt = false);
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              AddTransactionPage(service: _service, prefill: draft),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isAnalyzingReceipt = false);
+
+      final message = error.toString();
+      if (message.contains('RESOURCE_EXHAUSTED')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Hệ thống AI đang bận xử lý, vui lòng thử lại sau vài giây!',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không thể quét hóa đơn: $error')));
+      }
+    }
   }
 }
 
@@ -312,9 +404,15 @@ class _MetricPill extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.l10n});
+  const _QuickActions({
+    required this.l10n,
+    this.onNavigateToTab,
+    this.onScanReceipt,
+  });
 
   final AppLocalizations l10n;
+  final ValueChanged<int>? onNavigateToTab;
+  final VoidCallback? onScanReceipt;
 
   @override
   Widget build(BuildContext context) {
@@ -323,8 +421,8 @@ class _QuickActions extends StatelessWidget {
       children: [
         _SectionHeader(
           title: l10n.quickActions,
-          actionLabel: l10n.customize,
-          onTap: () {},
+          actionLabel: l10n.seeAll,
+          onTap: () => onNavigateToTab?.call(1),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -337,6 +435,15 @@ class _QuickActions extends StatelessWidget {
               color: const Color(0xFF0C6D6A),
               background: const Color(0xFFE2F3EE),
               hint: l10n.tapToOpen,
+              onTap: () => onNavigateToTab?.call(1),
+            ),
+            _ActionTile(
+              label: 'Quét hóa đơn',
+              icon: Icons.qr_code_scanner_outlined,
+              color: const Color(0xFF0E7FA3),
+              background: const Color(0xFFD9F2F9),
+              hint: 'AI tự nhập liệu',
+              onTap: () => onScanReceipt?.call(),
             ),
             _ActionTile(
               label: l10n.categoriesAction,
@@ -344,6 +451,7 @@ class _QuickActions extends StatelessWidget {
               color: const Color(0xFF6F3D00),
               background: const Color(0xFFFFE6D6),
               hint: l10n.tapToOpen,
+              onTap: () => onNavigateToTab?.call(1),
             ),
             _ActionTile(
               label: l10n.insightsAction,
@@ -351,6 +459,7 @@ class _QuickActions extends StatelessWidget {
               color: const Color(0xFF1C2C5B),
               background: const Color(0xFFE9EDFF),
               hint: l10n.tapToOpen,
+              onTap: () => onNavigateToTab?.call(5),
             ),
           ],
         ),
@@ -428,6 +537,7 @@ class _ActionTile extends StatelessWidget {
     required this.color,
     required this.background,
     required this.hint,
+    required this.onTap,
   });
 
   final String label;
@@ -435,43 +545,48 @@ class _ActionTile extends StatelessWidget {
   final Color color;
   final Color background;
   final String hint;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color),
             ),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: const Color(0xFF1E2D2B)),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            hint,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: const Color(0xFF5C6B68)),
-          ),
-        ],
+            const SizedBox(height: 14),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: const Color(0xFF1E2D2B)),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              hint,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: const Color(0xFF5C6B68)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -647,6 +762,45 @@ class _TransactionTotals {
     }
 
     return _TransactionTotals(income: income, expense: expense);
+  }
+}
+
+class _ReceiptLoadingOverlay extends StatelessWidget {
+  const _ReceiptLoadingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withAlpha(60),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(12),
+                blurRadius: 16,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.4),
+              ),
+              SizedBox(width: 12),
+              Text('EggTrack AI đang đọc hóa đơn...'),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

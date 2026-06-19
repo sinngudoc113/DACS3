@@ -23,6 +23,8 @@ class _AuthPageState extends State<AuthPage> {
 
   bool _isLogin = true;
   bool _isLoading = false;
+  bool _hidePassword = true;
+  bool _hideConfirm = true;
 
   @override
   void dispose() {
@@ -89,29 +91,29 @@ class _AuthPageState extends State<AuthPage> {
 
     try {
       await _service.signInWithGoogle();
-      
+
       // Đợi để Firebase cập nhật state
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       if (mounted) {
         // AuthGate sẽ tự động detect user change và navigate
         // Không cần làm gì thêm
       }
     } on AuthServiceException {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.googleAuthError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.googleAuthError)));
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_mapAuthError(error, l10n))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_mapAuthError(error, l10n))));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.googleAuthError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.googleAuthError)));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -134,7 +136,10 @@ class _AuthPageState extends State<AuthPage> {
     }
   }
 
-  String _mapLocalServiceError(AuthServiceException error, AppLocalizations l10n) {
+  String _mapLocalServiceError(
+    AuthServiceException error,
+    AppLocalizations l10n,
+  ) {
     switch (error.code) {
       case '401':
       case '404':
@@ -182,9 +187,9 @@ class _AuthPageState extends State<AuthPage> {
               onPressed: () async {
                 final email = emailController.text.trim();
                 if (email.isEmpty || !email.contains('@')) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(content: Text(l10n.invalidEmail)),
-                  );
+                  ScaffoldMessenger.of(
+                    dialogContext,
+                  ).showSnackBar(SnackBar(content: Text(l10n.invalidEmail)));
                   return;
                 }
                 Navigator.of(dialogContext).pop();
@@ -207,8 +212,15 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
+    const authPrimary = Color(0xFF0B1F2A);
+    const authSecondary = Color(0xFF235D6F);
+    const authMuted = Color(0xFF5B7C8A);
+    const authCard = Colors.white;
+    const authBorder = Color(0xFFD4E7EE);
+    const authAccent = Color(0xFF0E7FA3);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFEAF6FA),
       body: Stack(
         children: [
           const DecorativeBackground(),
@@ -227,16 +239,14 @@ class _AuthPageState extends State<AuthPage> {
                         child: Container(
                           padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(246),
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: Colors.black.withAlpha(10),
-                            ),
+                            color: authCard,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: authBorder),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF0B3B47).withAlpha(22),
-                                blurRadius: 36,
-                                offset: const Offset(0, 24),
+                                color: const Color(0xFF0E7FA3).withAlpha(26),
+                                blurRadius: 26,
+                                offset: const Offset(0, 18),
                               ),
                             ],
                           ),
@@ -247,43 +257,136 @@ class _AuthPageState extends State<AuthPage> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
                                       width: 54,
                                       height: 54,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFE2F3EE),
-                                        borderRadius: BorderRadius.circular(18),
+                                        color: const Color(0xFFD9F2F9),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: const Icon(
-                                        Icons.savings_outlined,
-                                        color: Color(0xFF0C6D6A),
+                                        Icons.egg_alt_outlined,
+                                        color: Color(0xFF0E7FA3),
+                                        size: 28,
                                       ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l10n.appTitle,
+                                          style: textTheme.titleLarge?.copyWith(
+                                            color: authPrimary,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Money in one basket',
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: authMuted,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Spacer(),
                                     const AppMenuButton(showSignOut: false),
                                   ],
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 26),
                                 Text(
                                   _isLogin
                                       ? l10n.authLoginTitle
                                       : l10n.authRegisterTitle,
-                                  style: textTheme.headlineMedium?.copyWith(
-                                    color: const Color(0xFF1E2D2B),
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    color: authPrimary,
                                     fontWeight: FontWeight.w800,
-                                    height: 1,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 6),
                                 Text(
                                   _isLogin
                                       ? l10n.authLoginSubtitle
                                       : l10n.authRegisterSubtitle,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: const Color(0xFF5C6B68),
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: authMuted,
                                   ),
+                                ),
+                                const SizedBox(height: 18),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: _isLoading
+                                            ? null
+                                            : _signInWithGoogle,
+                                        icon: const Icon(Icons.g_mobiledata),
+                                        label: Text(l10n.googleSignIn),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: authPrimary,
+                                          backgroundColor: Colors.white,
+                                          side: BorderSide(color: authBorder),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 14,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(Icons.apple),
+                                        label: const Text('Apple'),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: authPrimary,
+                                          backgroundColor: Colors.white,
+                                          side: BorderSide(color: authBorder),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 14,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 18),
+                                Row(
+                                  children: [
+                                    Expanded(child: Divider(color: authBorder)),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        'or',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: authMuted,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(child: Divider(color: authBorder)),
+                                  ],
                                 ),
                                 const SizedBox(height: 24),
                                 AnimatedSwitcher(
@@ -327,7 +430,12 @@ class _AuthPageState extends State<AuthPage> {
                                   controller: _passwordController,
                                   label: l10n.passwordLabel,
                                   icon: Icons.lock_outline,
-                                  obscureText: true,
+                                  obscureText: _hidePassword,
+                                  onToggleObscure: () {
+                                    setState(
+                                      () => _hidePassword = !_hidePassword,
+                                    );
+                                  },
                                   textInputAction: _isLogin
                                       ? TextInputAction.done
                                       : TextInputAction.next,
@@ -350,7 +458,13 @@ class _AuthPageState extends State<AuthPage> {
                                         onPressed: _isLoading
                                             ? null
                                             : _showForgotPasswordDialog,
-                                        child: Text(l10n.forgotPassword),
+                                        child: Text(
+                                          l10n.forgotPassword,
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: authSecondary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -366,7 +480,13 @@ class _AuthPageState extends State<AuthPage> {
                                               label: l10n.confirmPasswordLabel,
                                               icon:
                                                   Icons.verified_user_outlined,
-                                              obscureText: true,
+                                              obscureText: _hideConfirm,
+                                              onToggleObscure: () {
+                                                setState(
+                                                  () => _hideConfirm =
+                                                      !_hideConfirm,
+                                                );
+                                              },
                                               validator: (value) {
                                                 if (value == null ||
                                                     value.trim().isEmpty) {
@@ -391,6 +511,13 @@ class _AuthPageState extends State<AuthPage> {
                                   height: 54,
                                   child: ElevatedButton(
                                     onPressed: _isLoading ? null : _submit,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: authAccent,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                    ),
                                     child: Text(
                                       _isLoading
                                           ? l10n.processing
@@ -404,54 +531,6 @@ class _AuthPageState extends State<AuthPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Divider(
-                                        color: Colors.black.withAlpha(22),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        l10n.orContinueWith,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: const Color(0xFF6D7573),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Divider(
-                                        color: Colors.black.withAlpha(22),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  height: 52,
-                                  child: OutlinedButton.icon(
-                                    onPressed: _isLoading
-                                        ? null
-                                        : _signInWithGoogle,
-                                    icon: const Icon(Icons.g_mobiledata),
-                                    label: Text(l10n.googleSignIn),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: const Color(0xFF1E2D2B),
-                                      side: BorderSide(
-                                        color: Colors.black.withAlpha(24),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      textStyle: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
                                 const SizedBox(height: 18),
                                 Center(
                                   child: TextButton(
@@ -464,6 +543,10 @@ class _AuthPageState extends State<AuthPage> {
                                       _isLogin
                                           ? l10n.switchToRegister
                                           : l10n.switchToLogin,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: authSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -492,6 +575,7 @@ class _AuthTextField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.obscureText = false,
+    this.onToggleObscure,
     this.validator,
   });
 
@@ -501,6 +585,7 @@ class _AuthTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool obscureText;
+  final VoidCallback? onToggleObscure;
   final String? Function(String?)? validator;
 
   @override
@@ -511,9 +596,30 @@ class _AuthTextField extends StatelessWidget {
       textInputAction: textInputAction,
       obscureText: obscureText,
       validator: validator,
+      style: const TextStyle(color: Color(0xFF101827)),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF0C6D6A)),
+        prefixIcon: Icon(icon, color: const Color(0xFF0E7FA3)),
+        suffixIcon: onToggleObscure == null
+            ? null
+            : IconButton(
+                onPressed: onToggleObscure,
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: const Color(0xFF5B7C8A),
+                ),
+              ),
+        filled: true,
+        fillColor: const Color(0xFFEAF6FA),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFD4E7EE)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF0E7FA3), width: 1.2),
+        ),
+        labelStyle: const TextStyle(color: Color(0xFF5B7C8A)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 18,

@@ -76,10 +76,8 @@ class _StatsPageState extends State<StatsPage> {
                 previousRange,
               );
               final currentTotals = _StatsTotals.fromEntries(currentEntries);
-              final previousTotals = _StatsTotals.fromEntries(previousEntries);
               final selectedTotal = _metricValue(currentTotals, _metric);
-              final previousTotal = _metricValue(previousTotals, _metric);
-              final delta = selectedTotal - previousTotal;
+              final totalColor = _metricColor(currentTotals, _metric);
               final categoryStats = _buildCategoryStatsForMetric(
                 currentEntries,
                 currentTotals,
@@ -89,6 +87,7 @@ class _StatsPageState extends State<StatsPage> {
                 currentEntries,
                 previousEntries,
                 currentRange,
+                previousRange,
                 _metric,
               );
 
@@ -208,14 +207,12 @@ class _StatsPageState extends State<StatsPage> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            formatCurrency(selectedTotal),
+                            _formatMetricCurrency(selectedTotal, _metric),
                             style: textTheme.displaySmall?.copyWith(
-                              color: const Color(0xFF1F1F1F),
+                              color: totalColor,
                               letterSpacing: -0.6,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          _DeltaChip(delta: delta, l10n: l10n, range: _range),
                         ],
                       ),
                     ),
@@ -249,7 +246,7 @@ class _StatsPageState extends State<StatsPage> {
                                 value: _compareSamePeriod,
                                 onChanged: (value) =>
                                     setState(() => _compareSamePeriod = value),
-                                activeColor: const Color(0xFF2DBE6C),
+                                activeThumbColor: const Color(0xFF2DBE6C),
                               ),
                             ],
                           ),
@@ -259,6 +256,7 @@ class _StatsPageState extends State<StatsPage> {
                             child: _DualBarChart(
                               series: trend,
                               showComparison: _compareSamePeriod,
+                              metric: _metric,
                             ),
                           ),
                         ],
@@ -269,12 +267,7 @@ class _StatsPageState extends State<StatsPage> {
                       metric: _metric,
                       l10n: l10n,
                       categoryStats: categoryStats,
-                      periodDiff: _buildPeriodDiff(
-                        currentEntries,
-                        _range,
-                        anchor,
-                      ),
-                      range: _range,
+                      transactions: currentEntries,
                     ),
                   ],
                 ),
@@ -289,7 +282,7 @@ class _StatsPageState extends State<StatsPage> {
   DateTime _anchorForRange(StatsRange range, DateTime selectedMonth) {
     final now = DateTime.now();
     if (range == StatsRange.week) {
-      return now;
+      return DateTime(now.year, now.month, now.day);
     }
     return DateTime(selectedMonth.year, selectedMonth.month, 1);
   }
@@ -349,12 +342,34 @@ double _metricValue(_StatsTotals totals, StatsMetric metric) {
   }
 }
 
+Color _metricColor(_StatsTotals totals, StatsMetric metric) {
+  if (metric != StatsMetric.difference) {
+    return const Color(0xFF1F1F1F);
+  }
+  if (totals.expense < totals.income) {
+    return const Color(0xFF2DBE6C);
+  }
+  if (totals.expense > totals.income) {
+    return const Color(0xFFFF6B6B);
+  }
+  return const Color(0xFF6B6B6B);
+}
+
+String _formatMetricCurrency(double value, StatsMetric metric) {
+  if (metric != StatsMetric.difference) {
+    return formatCurrency(value);
+  }
+  if (value == 0) {
+    return formatCurrency(0);
+  }
+  return formatSignedCurrency(value);
+}
+
 _DateRange _resolveRange(StatsRange range, DateTime anchor) {
-  final now = DateTime.now();
   switch (range) {
     case StatsRange.week:
-      final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
-      final start = end.subtract(const Duration(days: 6));
+      final start = DateTime(anchor.year, anchor.month, anchor.day);
+      final end = DateTime(anchor.year, anchor.month, anchor.day, 23, 59, 59);
       return _DateRange(start: start, end: end);
     case StatsRange.month:
       final start = DateTime(anchor.year, anchor.month, 1);
@@ -375,8 +390,8 @@ _DateRange _resolvePreviousRange(
   switch (range) {
     case StatsRange.week:
       return _DateRange(
-        start: current.start.subtract(const Duration(days: 7)),
-        end: current.end.subtract(const Duration(days: 7)),
+        start: current.start.subtract(const Duration(days: 1)),
+        end: current.end.subtract(const Duration(days: 1)),
       );
     case StatsRange.month:
       final prevAnchor = DateTime(anchor.year, anchor.month - 1, 1);
@@ -413,13 +428,10 @@ List<TransactionEntry> _filterTransactionsByRange(
 
 List<_CategoryStat> _buildCategoryStats(
   List<TransactionEntry> entries,
-  double totalExpense,
+  double total,
 ) {
   final Map<String, double> totals = {};
   for (final entry in entries) {
-    if (entry.type != TransactionType.expense) {
-      continue;
-    }
     final key = _normalizeCategoryKey(entry.category);
     totals.update(
       key,
@@ -433,7 +445,7 @@ List<_CategoryStat> _buildCategoryStats(
         (entry) => _CategoryStat(
           title: entry.key,
           amount: entry.value,
-          percent: totalExpense == 0 ? 0 : entry.value / totalExpense,
+          percent: total == 0 ? 0 : entry.value / total,
           color: _categoryColors[entry.key] ?? const Color(0xFF6D7573),
         ),
       )
@@ -466,9 +478,11 @@ List<_TrendPoint> _buildTrendSeries(
   List<TransactionEntry> current,
   List<TransactionEntry> previous,
   _DateRange range,
+  _DateRange previousRange,
   StatsMetric metric,
 ) {
-  final buckets = range.bucketCount;
+  final rangeBuckets = range.buckets;
+  final buckets = rangeBuckets.length;
   final currentSeries = List<double>.filled(buckets, 0);
   final previousSeries = List<double>.filled(buckets, 0);
   for (final entry in current) {
@@ -479,11 +493,12 @@ List<_TrendPoint> _buildTrendSeries(
     currentSeries[index] += _entryMetricValue(entry, metric);
   }
   for (final entry in previous) {
-    final index = range.bucketIndex(entry.createdAt);
+    final index = previousRange.bucketIndex(entry.createdAt);
     if (index == null) {
       continue;
     }
-    previousSeries[index] += _entryMetricValue(entry, metric);
+    final alignedIndex = min(index, previousSeries.length - 1);
+    previousSeries[alignedIndex] += _entryMetricValue(entry, metric);
   }
   final maxValue = [
     ...currentSeries,
@@ -492,6 +507,9 @@ List<_TrendPoint> _buildTrendSeries(
   return List.generate(
     buckets,
     (index) => _TrendPoint(
+      label: rangeBuckets[index].label,
+      currentValue: currentSeries[index],
+      previousValue: previousSeries[index],
       current: maxValue == 0
           ? 0
           : (currentSeries[index].abs() / maxValue).clamp(0.0, 1.0),
@@ -653,63 +671,16 @@ class _SegmentedChipRow<T> extends StatelessWidget {
   }
 }
 
-class _DeltaChip extends StatelessWidget {
-  const _DeltaChip({
-    required this.delta,
-    required this.l10n,
-    required this.range,
-  });
-
-  final double delta;
-  final AppLocalizations l10n;
-  final StatsRange range;
-
-  @override
-  Widget build(BuildContext context) {
-    final isUp = delta >= 0;
-    final color = isUp ? const Color(0xFF2DBE6C) : const Color(0xFFFF6B6B);
-    final icon = isUp ? Icons.arrow_upward : Icons.arrow_downward;
-    final label = isUp
-        ? l10n.increaseComparedTo(
-            formatCurrency(delta.abs()),
-            _previousRangeLabel(l10n, range),
-          )
-        : l10n.decreaseComparedTo(
-            formatCurrency(delta.abs()),
-            _previousRangeLabel(l10n, range),
-          );
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withAlpha(24),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DualBarChart extends StatelessWidget {
-  const _DualBarChart({required this.series, required this.showComparison});
+  const _DualBarChart({
+    required this.series,
+    required this.showComparison,
+    required this.metric,
+  });
 
   final List<_TrendPoint> series;
   final bool showComparison;
+  final StatsMetric metric;
 
   @override
   Widget build(BuildContext context) {
@@ -728,7 +699,7 @@ class _DualBarChart extends StatelessWidget {
                         heightFactor: point.previous,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBBDCFB),
+                            color: _barColor(point.previousValue, true),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
@@ -737,7 +708,7 @@ class _DualBarChart extends StatelessWidget {
                       heightFactor: point.current,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7FB5FF),
+                          color: _barColor(point.currentValue, false),
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -750,6 +721,19 @@ class _DualBarChart extends StatelessWidget {
           .toList(),
     );
   }
+
+  Color _barColor(double value, bool comparison) {
+    if (metric != StatsMetric.difference) {
+      return comparison ? const Color(0xFFBBDCFB) : const Color(0xFF7FB5FF);
+    }
+    if (value > 0) {
+      return comparison ? const Color(0xFFA9EBC5) : const Color(0xFF2DBE6C);
+    }
+    if (value < 0) {
+      return comparison ? const Color(0xFFFFB4B4) : const Color(0xFFFF6B6B);
+    }
+    return const Color(0xFFD7DBDD);
+  }
 }
 
 class _MetricDetailSection extends StatelessWidget {
@@ -757,39 +741,49 @@ class _MetricDetailSection extends StatelessWidget {
     required this.metric,
     required this.l10n,
     required this.categoryStats,
-    required this.periodDiff,
-    required this.range,
+    required this.transactions,
   });
 
   final StatsMetric metric;
   final AppLocalizations l10n;
   final List<_CategoryStat> categoryStats;
-  final List<_PeriodDiffItem> periodDiff;
-  final StatsRange range;
+  final List<TransactionEntry> transactions;
 
   @override
   Widget build(BuildContext context) {
     if (metric == StatsMetric.difference) {
-      final hasData = periodDiff.any(
-        (item) => item.income != 0 || item.expense != 0,
-      );
-      if (!hasData) {
-        return const SizedBox.shrink();
-      }
-      final title = range == StatsRange.week
-          ? l10n.detailByDay
-          : l10n.detailByMonth;
+      final sortedTransactions = [...transactions]
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          ...periodDiff.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _DiffRow(item: item, l10n: l10n),
-            ),
+          Text(
+            l10n.historyTitle,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
+          const SizedBox(height: 12),
+          if (sortedTransactions.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                l10n.noTransactions,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF6D7573),
+                ),
+              ),
+            )
+          else
+            ...sortedTransactions.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _TransactionDetailRow(entry: entry, l10n: l10n),
+              ),
+            ),
         ],
       );
     }
@@ -828,18 +822,18 @@ class _MetricDetailSection extends StatelessWidget {
   }
 }
 
-class _DiffRow extends StatelessWidget {
-  const _DiffRow({required this.item, required this.l10n});
+class _TransactionDetailRow extends StatelessWidget {
+  const _TransactionDetailRow({required this.entry, required this.l10n});
 
-  final _PeriodDiffItem item;
+  final TransactionEntry entry;
   final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final diffColor = item.diff >= 0
-        ? const Color(0xFF2DBE6C)
-        : const Color(0xFFFF6B6B);
+    final isExpense = entry.type == TransactionType.expense;
+    final amount = isExpense ? -entry.amount : entry.amount;
+    final color = isExpense ? const Color(0xFFFF6B6B) : const Color(0xFF2DBE6C);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -853,26 +847,26 @@ class _DiffRow extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFFF6F7F9),
+              color: isExpense
+                  ? const Color(0xFFFFEFEF)
+                  : const Color(0xFFEAF8EF),
               borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
-            child: Text(item.label, style: textTheme.titleSmall),
+            child: Icon(
+              isExpense ? Icons.trending_down : Icons.trending_up,
+              color: color,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${l10n.income} ${formatCurrency(item.income)}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF6B6B6B),
-                  ),
-                ),
+                Text(entry.title, style: textTheme.titleMedium),
                 const SizedBox(height: 6),
                 Text(
-                  '${l10n.expense} ${formatCurrency(item.expense)}',
+                  '${l10n.categoryName(entry.category)} - ${_formatTransactionDate(entry.createdAt)}',
                   style: textTheme.bodySmall?.copyWith(
                     color: const Color(0xFF6B6B6B),
                   ),
@@ -881,9 +875,9 @@ class _DiffRow extends StatelessWidget {
             ),
           ),
           Text(
-            formatCurrency(item.diff),
+            formatSignedCurrency(amount),
             style: textTheme.titleMedium?.copyWith(
-              color: diffColor,
+              color: color,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -894,24 +888,19 @@ class _DiffRow extends StatelessWidget {
 }
 
 class _TrendPoint {
-  const _TrendPoint({required this.current, required this.previous});
-
-  final double current;
-  final double previous;
-}
-
-class _PeriodDiffItem {
-  const _PeriodDiffItem({
+  const _TrendPoint({
     required this.label,
-    required this.income,
-    required this.expense,
+    required this.currentValue,
+    required this.previousValue,
+    required this.current,
+    required this.previous,
   });
 
   final String label;
-  final double income;
-  final double expense;
-
-  double get diff => income - expense;
+  final double currentValue;
+  final double previousValue;
+  final double current;
+  final double previous;
 }
 
 class _DateRange {
@@ -920,8 +909,93 @@ class _DateRange {
   final DateTime start;
   final DateTime end;
 
+  List<_DateBucket> get buckets {
+    final days = end.difference(start).inDays + 1;
+    if (days == 1) {
+      return List.generate(6, (index) {
+        final bucketStart = DateTime(
+          start.year,
+          start.month,
+          start.day,
+          index * 4,
+        );
+        final bucketEnd = DateTime(
+          start.year,
+          start.month,
+          start.day,
+          index * 4 + 3,
+          59,
+          59,
+        );
+        return _DateBucket(
+          label:
+              '${bucketStart.hour.toString().padLeft(2, '0')}:00-${bucketEnd.hour.toString().padLeft(2, '0')}:59',
+          range: _DateRange(start: bucketStart, end: bucketEnd),
+        );
+      });
+    }
+
+    if (days <= 7) {
+      return List.generate(days, (index) {
+        final day = DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).add(Duration(days: index));
+        return _DateBucket(
+          label:
+              '${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}',
+          range: _DateRange(
+            start: day,
+            end: DateTime(day.year, day.month, day.day, 23, 59, 59),
+          ),
+        );
+      });
+    }
+
+    if (days <= 31) {
+      return List.generate(bucketCount, (index) {
+        final bucketStart = DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).add(Duration(days: index * 7));
+        final bucketEndDay = bucketStart.add(const Duration(days: 6));
+        final cappedEnd = bucketEndDay.isAfter(end)
+            ? end
+            : DateTime(
+                bucketEndDay.year,
+                bucketEndDay.month,
+                bucketEndDay.day,
+                23,
+                59,
+                59,
+              );
+        return _DateBucket(
+          label:
+              '${bucketStart.day.toString().padLeft(2, '0')}-${cappedEnd.day.toString().padLeft(2, '0')}/${bucketStart.month.toString().padLeft(2, '0')}',
+          range: _DateRange(start: bucketStart, end: cappedEnd),
+        );
+      });
+    }
+
+    return List.generate(12, (index) {
+      final month = DateTime(start.year, index + 1, 1);
+      return _DateBucket(
+        label: '${month.month.toString().padLeft(2, '0')}/${month.year}',
+        range: _DateRange(
+          start: month,
+          end: DateTime(month.year, month.month + 1, 0, 23, 59, 59),
+        ),
+      );
+    });
+  }
+
   int get bucketCount {
     final days = end.difference(start).inDays + 1;
+    if (days == 1) {
+      return 6;
+    }
     if (days <= 7) {
       return days;
     }
@@ -936,6 +1010,9 @@ class _DateRange {
       return null;
     }
     final totalDays = end.difference(start).inDays + 1;
+    if (totalDays == 1) {
+      return max(0, min(date.hour ~/ 4, bucketCount - 1));
+    }
     if (totalDays <= 7) {
       return date.difference(start).inDays;
     }
@@ -949,63 +1026,11 @@ class _DateRange {
   }
 }
 
-List<_PeriodDiffItem> _buildPeriodDiff(
-  List<TransactionEntry> entries,
-  StatsRange range,
-  DateTime anchor,
-) {
-  final now = DateTime.now();
-  if (range == StatsRange.week) {
-    final items = <_PeriodDiffItem>[];
-    for (var i = 6; i >= 0; i--) {
-      final day = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).subtract(Duration(days: i));
-      final dayEntries = entries
-          .where(
-            (entry) =>
-                entry.createdAt.year == day.year &&
-                entry.createdAt.month == day.month &&
-                entry.createdAt.day == day.day,
-          )
-          .toList();
-      final totals = _StatsTotals.fromEntries(dayEntries);
-      items.add(
-        _PeriodDiffItem(
-          label:
-              '${day.day.toString().padLeft(2, '0')}/${day.month.toString().padLeft(2, '0')}/${day.year}',
-          income: totals.income,
-          expense: totals.expense,
-        ),
-      );
-    }
-    return items;
-  }
+class _DateBucket {
+  const _DateBucket({required this.label, required this.range});
 
-  final months = range == StatsRange.year ? 12 : 4;
-  final items = <_PeriodDiffItem>[];
-  for (var i = months - 1; i >= 0; i--) {
-    final monthDate = DateTime(anchor.year, anchor.month - i, 1);
-    final monthEntries = entries
-        .where(
-          (entry) =>
-              entry.createdAt.year == monthDate.year &&
-              entry.createdAt.month == monthDate.month,
-        )
-        .toList();
-    final totals = _StatsTotals.fromEntries(monthEntries);
-    items.add(
-      _PeriodDiffItem(
-        label:
-            '${monthDate.month.toString().padLeft(2, '0')}/${monthDate.year}',
-        income: totals.income,
-        expense: totals.expense,
-      ),
-    );
-  }
-  return items;
+  final String label;
+  final _DateRange range;
 }
 
 String _totalLabel(
@@ -1034,15 +1059,10 @@ String _currentRangeLabel(AppLocalizations l10n, StatsRange range) {
   }
 }
 
-String _previousRangeLabel(AppLocalizations l10n, StatsRange range) {
-  switch (range) {
-    case StatsRange.week:
-      return l10n.periodWeek;
-    case StatsRange.month:
-      return l10n.periodMonth;
-    case StatsRange.year:
-      return l10n.periodYear;
-  }
+String _formatTransactionDate(DateTime value) {
+  final day = value.day.toString().padLeft(2, '0');
+  final month = value.month.toString().padLeft(2, '0');
+  return '$day/$month/${value.year}';
 }
 
 class _CategoryStat {

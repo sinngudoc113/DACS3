@@ -1,22 +1,29 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../config/api_config.dart';
 import '../l10n/app_localizations.dart';
+import '../models/monthly_budget.dart';
+import '../models/receipt_draft.dart';
 import '../models/transaction_entry.dart';
 import '../services/auth_service.dart';
+import '../services/budget_service.dart';
 import '../services/receipt_ai_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/currency_format.dart';
 import '../widgets/shared_widgets.dart';
-import 'add_transaction_page.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key, this.service, this.onNavigateToTab});
+  const DashboardPage({
+    super.key,
+    this.service,
+    this.budgetService,
+    this.onNavigateToTab,
+  });
 
   final TransactionService? service;
+  final BudgetService? budgetService;
   final ValueChanged<int>? onNavigateToTab;
 
   @override
@@ -31,6 +38,7 @@ class _DashboardPageState extends State<DashboardPage>
   late final Animation<double> _actionsAnimation;
   late final Animation<double> _transactionsAnimation;
   late final TransactionService _service;
+  late final BudgetService _budgetService;
   bool _isAnalyzingReceipt = false;
   final ReceiptAiService _receiptAiService = ReceiptAiService();
   final ImagePicker _imagePicker = ImagePicker();
@@ -39,7 +47,13 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
     _service = widget.service ?? TransactionService.node(baseUrl: apiBaseUrl());
+    _budgetService =
+        widget.budgetService ??
+        (widget.service == null
+            ? BudgetService.node(baseUrl: apiBaseUrl())
+            : BudgetService.memory());
     _service.load();
+    _budgetService.load();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -113,10 +127,19 @@ class _DashboardPageState extends State<DashboardPage>
                       const SizedBox(height: 24),
                       AnimatedSection(
                         animation: _actionsAnimation,
-                        child: _QuickActions(
-                          l10n: l10n,
-                          onNavigateToTab: widget.onNavigateToTab,
-                          onScanReceipt: () => _showReceiptSheet(context),
+                        child: ValueListenableBuilder<List<MonthlyBudget>>(
+                          valueListenable: _budgetService.listenable,
+                          builder: (context, budgets, _) {
+                            return _QuickActions(
+                              l10n: l10n,
+                              budgetPace: _BudgetPace.fromEntries(
+                                transactions: transactions,
+                                budgets: budgets,
+                              ),
+                              onNavigateToTab: widget.onNavigateToTab,
+                              onScanReceipt: () => _showReceiptSheet(context),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -140,61 +163,61 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Future<void> _showReceiptSheet(BuildContext context) async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Chụp ảnh mới'),
-              onTap: () => Navigator.of(context).pop(ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Chọn từ thư viện'),
-              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (source == null) {
-      return;
-    }
-
-    final picked = await _imagePicker.pickImage(
-      source: source,
-      maxWidth: 720,
-      maxHeight: 1280,
-      imageQuality: 60,
-    );
-
-    if (picked == null || !mounted) {
-      return;
-    }
-
-    setState(() => _isAnalyzingReceipt = true);
-
     try {
-      final draft = await _receiptAiService.analyzeReceiptWithAI(
-        File(picked.path),
+      final source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!kIsWeb)
+                ListTile(
+                  leading: const Icon(Icons.photo_camera_outlined),
+                  title: const Text('Chụp ảnh mới'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Chọn từ thư viện'),
+                onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
       );
-      if (!mounted) {
+
+      if (source == null) {
+        return;
+      }
+
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 720,
+        maxHeight: 1280,
+        imageQuality: 60,
+      );
+
+      if (picked == null || !mounted) {
+        return;
+      }
+
+      setState(() => _isAnalyzingReceipt = true);
+      final draft = await _receiptAiService.analyzeReceiptWithAI(picked);
+      if (!context.mounted) {
+        return;
+      }
+      await _saveReceiptDraft(draft);
+      if (!context.mounted) {
         return;
       }
       setState(() => _isAnalyzingReceipt = false);
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) =>
-              AddTransactionPage(service: _service, prefill: draft),
-        ),
+      widget.onNavigateToTab?.call(2);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đã lưu ${draft.items.length} mục từ hóa đơn.')),
       );
     } catch (error) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       setState(() => _isAnalyzingReceipt = false);
@@ -210,10 +233,49 @@ class _DashboardPageState extends State<DashboardPage>
           ),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Không thể quét hóa đơn: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể quét hóa đơn: $error')),
+        );
       }
+    }
+  }
+
+  Future<void> _saveReceiptDraft(ReceiptDraft draft) async {
+    final now = DateTime.now();
+    final parsedDate = draft.transactionDate;
+    final isPlausibleReceiptDate =
+        parsedDate != null &&
+        !parsedDate.isBefore(DateTime(now.year - 1, 1, 1)) &&
+        !parsedDate.isAfter(now.add(const Duration(days: 1)));
+    final receiptDate = !isPlausibleReceiptDate
+        ? now
+        : DateTime(
+            parsedDate.year,
+            parsedDate.month,
+            parsedDate.day,
+            now.hour,
+            now.minute,
+          );
+
+    for (final item in draft.items) {
+      final noteParts = [
+        if (draft.merchant.isNotEmpty) draft.merchant,
+        if (item.note.isNotEmpty) item.note,
+        'Tự động từ AI quét hóa đơn',
+      ];
+
+      await _service.addTransaction(
+        TransactionEntry(
+          id: '',
+          title: item.title.trim().isEmpty ? 'Mục hóa đơn' : item.title.trim(),
+          amount: item.amount,
+          type: TransactionType.expense,
+          category: item.category,
+          note: noteParts.join(' • '),
+          createdAt: receiptDate,
+          userId: '',
+        ),
+      );
     }
   }
 }
@@ -406,11 +468,13 @@ class _MetricPill extends StatelessWidget {
 class _QuickActions extends StatelessWidget {
   const _QuickActions({
     required this.l10n,
+    required this.budgetPace,
     this.onNavigateToTab,
     this.onScanReceipt,
   });
 
   final AppLocalizations l10n;
+  final _BudgetPace budgetPace;
   final ValueChanged<int>? onNavigateToTab;
   final VoidCallback? onScanReceipt;
 
@@ -502,7 +566,9 @@ class _QuickActions extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.budgetPaceSubtitle,
+                      budgetPace.hasBudget
+                          ? l10n.budgetPaceSubtitle(budgetPace.percent)
+                          : l10n.noBudgetYet,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF6D7573),
                       ),
@@ -511,7 +577,7 @@ class _QuickActions extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(40),
                       child: LinearProgressIndicator(
-                        value: 0.72,
+                        value: budgetPace.progress,
                         minHeight: 8,
                         backgroundColor: const Color(0xFFF0F1F2),
                         valueColor: const AlwaysStoppedAnimation<Color>(
@@ -527,6 +593,71 @@ class _QuickActions extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _BudgetPace {
+  const _BudgetPace({required this.spent, required this.limit});
+
+  final double spent;
+  final double limit;
+
+  bool get hasBudget => limit > 0;
+  double get progress => hasBudget ? (spent / limit).clamp(0.0, 1.0) : 0.0;
+  int get percent => hasBudget ? ((spent / limit) * 100).round() : 0;
+
+  factory _BudgetPace.fromEntries({
+    required List<TransactionEntry> transactions,
+    required List<MonthlyBudget> budgets,
+  }) {
+    final currentMonth = currentMonthKey();
+    final currentBudgets = budgets
+        .where((budget) => budget.month == currentMonth && budget.limit > 0)
+        .toList(growable: false);
+
+    final monthlyExpenses = transactions.where((transaction) {
+      final transactionMonth =
+          '${transaction.createdAt.year}-${transaction.createdAt.month.toString().padLeft(2, '0')}';
+      return transaction.type == TransactionType.expense &&
+          transactionMonth == currentMonth;
+    });
+
+    MonthlyBudget? overallBudget;
+    for (final budget in currentBudgets) {
+      if (budget.category == 'overall') {
+        overallBudget = budget;
+        break;
+      }
+    }
+
+    if (overallBudget != null) {
+      final spent = monthlyExpenses.fold<double>(
+        0,
+        (total, transaction) => total + transaction.amount,
+      );
+      return _BudgetPace(spent: spent, limit: overallBudget.limit);
+    }
+
+    final categoryBudgets = currentBudgets
+        .where((budget) => budget.category != 'overall')
+        .toList(growable: false);
+    if (categoryBudgets.isEmpty) {
+      return const _BudgetPace(spent: 0, limit: 0);
+    }
+
+    final budgetedCategories = categoryBudgets
+        .map((budget) => budget.category)
+        .toSet();
+    final spent = monthlyExpenses
+        .where(
+          (transaction) => budgetedCategories.contains(transaction.category),
+        )
+        .fold<double>(0, (total, transaction) => total + transaction.amount);
+    final limit = categoryBudgets.fold<double>(
+      0,
+      (total, budget) => total + budget.limit,
+    );
+    return _BudgetPace(spent: spent, limit: limit);
   }
 }
 

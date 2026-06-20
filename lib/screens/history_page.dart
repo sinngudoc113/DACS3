@@ -161,8 +161,11 @@ class _HistoryPageState extends State<HistoryPage> {
   ) {
     final filtered = transactions.where((entry) {
       final matchesType = _typeFilter == null || entry.type == _typeFilter;
-      final haystack = '${entry.title} ${entry.note} ${entry.category}'
-          .toLowerCase();
+      final haystack =
+          '${entry.title} ${entry.note} ${entry.category} '
+                  '${entry.amount.toStringAsFixed(0)} ${_formatDate(entry.createdAt)} '
+                  '${entry.userEmail}'
+              .toLowerCase();
       final matchesQuery = _query.isEmpty || haystack.contains(_query);
       return matchesType && matchesQuery;
     }).toList();

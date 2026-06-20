@@ -76,6 +76,14 @@ module.exports = {
       "provider": "local",
       "passwordHash": "$2a$10$3Bds9SB8KrrxVMLewyYCyOhC9NmX8us1gGvgHhot1NDE.4uYknETW",
       "createdAt": "2026-05-18T13:52:45.263Z"
+    },
+    {
+      "uid": "NxEQHLkJcxciZx2Q3LfVuqK9ZBN2",
+      "email": "duyhn.24it@vku.udn.vn",
+      "role": "user",
+      "displayName": "HUỲNH NGỌC DUY",
+      "provider": "google",
+      "createdAt": "2026-06-19T14:10:53.425Z"
     }
   ],
   "transactions": [],

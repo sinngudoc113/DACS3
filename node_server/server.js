@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET || 'dacs3-local-development-secret';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .split(',')
   .map((value) => value.trim().toLowerCase())
@@ -129,7 +130,7 @@ ensureAdminInitialized();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '12mb' }));
 
 function normalizeRole(role) {
   return role === 'admin' ? 'admin' : 'user';
@@ -354,6 +355,134 @@ function mapBudget(item) {
   };
 }
 
+function extractGeminiResponseText(data) {
+  const parts = [];
+  for (const candidate of data.candidates || []) {
+    for (const part of candidate.content?.parts || []) {
+      if (typeof part.text === 'string') {
+        parts.push(part.text);
+      }
+    }
+  }
+  return parts.join('\n');
+}
+
+function normalizeReceiptCategory(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['food', 'bills', 'travel', 'shopping', 'other'].includes(normalized)) {
+    return normalized;
+  }
+  return 'other';
+}
+
+function normalizeReceiptItem(item) {
+  const amount = Math.max(0, Number(item.amount) || 0);
+  return {
+    title: String(item.title || 'Mục hóa đơn').trim(),
+    amount,
+    category: normalizeReceiptCategory(item.category),
+    note: String(item.note || '').trim(),
+  };
+}
+
+async function analyzeReceiptWithGemini({ imageBase64, mimeType }) {
+  if (!process.env.GEMINI_API_KEY) {
+    const error = new Error('Missing GEMINI_API_KEY in node_server/.env.');
+    error.statusCode = 501;
+    throw error;
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+    method: 'POST',
+    headers: {
+      'x-goog-api-key': process.env.GEMINI_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text:
+                'Đọc ảnh hóa đơn tiếng Việt hoặc tiếng Anh. Tách từng dòng hàng/dịch vụ có giá tiền thành một giao dịch chi tiêu riêng. ' +
+                'Chỉ dùng category trong enum: food cho ăn uống/nhà hàng/đồ uống; bills cho hóa đơn điện nước/điện thoại/dịch vụ định kỳ; ' +
+                'travel cho di chuyển/xăng xe/vé; shopping cho mua sắm/hàng hóa; other nếu không chắc. ' +
+                'amount là số tiền VND của từng dòng, không lấy phần giảm giá âm. Nếu hóa đơn chỉ có tổng tiền mà không đọc được dòng hàng, trả một item theo tổng tiền.',
+            },
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: imageBase64,
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          required: ['merchant', 'transactionDate', 'items'],
+          properties: {
+            merchant: { type: 'string' },
+            transactionDate: {
+              type: 'string',
+              description: 'ISO-8601 date if visible, otherwise empty string.',
+            },
+            items: {
+              type: 'array',
+              minItems: 1,
+              items: {
+                type: 'object',
+                required: ['title', 'amount', 'category', 'note'],
+                properties: {
+                  title: { type: 'string' },
+                  amount: { type: 'number' },
+                  category: {
+                    type: 'string',
+                    enum: ['food', 'bills', 'travel', 'shopping', 'other'],
+                  },
+                  note: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error?.message || `Gemini request failed (${response.status}).`);
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const text = extractGeminiResponseText(data);
+  if (!text) {
+    throw new Error('Gemini did not return receipt data.');
+  }
+
+  const parsed = JSON.parse(text);
+  const items = Array.isArray(parsed.items)
+    ? parsed.items.map(normalizeReceiptItem).filter((item) => item.amount > 0)
+    : [];
+
+  if (items.length === 0) {
+    throw new Error('Không đọc được dòng tiền nào từ hóa đơn.');
+  }
+
+  return {
+    merchant: String(parsed.merchant || '').trim(),
+    transactionDate: String(parsed.transactionDate || '').trim(),
+    items,
+  };
+}
+
 app.get('/health', (_, res) => {
   res.json({ ok: true });
 });
@@ -471,6 +600,29 @@ app.get('/categories', authMiddleware, (req, res) => {
   res.json(req.store.categories);
 });
 
+app.post('/receipts/analyze', authMiddleware, async (req, res) => {
+  const imageBase64 = String(req.body.imageBase64 || '').trim();
+  const mimeType = String(req.body.mimeType || 'image/jpeg').trim();
+
+  if (!imageBase64) {
+    return res.status(400).json({ message: 'Receipt image is required.' });
+  }
+
+  if (!/^image\/(jpeg|jpg|png|webp)$/i.test(mimeType)) {
+    return res.status(400).json({ message: 'Unsupported receipt image type.' });
+  }
+
+  try {
+    const result = await analyzeReceiptWithGemini({ imageBase64, mimeType });
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      message: 'Failed to analyze receipt.',
+      error: error.message,
+    });
+  }
+});
+
 app.get('/users', authMiddleware, requireAdmin, (req, res) => {
   res.json(req.store.users);
 });
@@ -490,7 +642,7 @@ app.patch('/users/:uid/role', authMiddleware, requireAdmin, (req, res) => {
   return res.json(user);
 });
 
-app.get('/group-funds', authMiddleware, requireGoogleAccount, (req, res) => {
+app.get('/group-funds', authMiddleware, (req, res) => {
   const data = loadGroupFunds();
   const funds = data.funds
     .filter((fund) => fundBelongsToUser(fund, req.user))
@@ -499,7 +651,7 @@ app.get('/group-funds', authMiddleware, requireGoogleAccount, (req, res) => {
   res.json(funds);
 });
 
-app.post('/group-funds', authMiddleware, requireGoogleAccount, (req, res) => {
+app.post('/group-funds', authMiddleware, (req, res) => {
   const name = String(req.body.name || '').trim();
 
   if (!name) {
@@ -532,7 +684,7 @@ app.post('/group-funds', authMiddleware, requireGoogleAccount, (req, res) => {
   res.status(201).json(mapGroupFund(fund));
 });
 
-app.post('/group-funds/:id/invite', authMiddleware, requireGoogleAccount, (req, res) => {
+app.post('/group-funds/:id/invite', authMiddleware, (req, res) => {
   const { id } = req.params;
   const email = normalizeEmail(req.body.email);
   const data = loadGroupFunds();
@@ -550,10 +702,10 @@ app.post('/group-funds/:id/invite', authMiddleware, requireGoogleAccount, (req, 
     return res.status(400).json({ message: 'Valid member email is required.' });
   }
 
-  const invitedUser = req.store.users.find((user) => user.email === email && user.provider === 'google');
+  const invitedUser = req.store.users.find((user) => user.email === email);
 
   if (!invitedUser) {
-    return res.status(404).json({ message: 'Only existing Google users can be invited.' });
+    return res.status(404).json({ message: 'Only existing users can be invited.' });
   }
 
   if (!Array.isArray(fund.members)) {
@@ -575,7 +727,7 @@ app.post('/group-funds/:id/invite', authMiddleware, requireGoogleAccount, (req, 
   res.json(mapGroupFund(fund));
 });
 
-app.post('/group-funds/:id/transactions', authMiddleware, requireGoogleAccount, (req, res) => {
+app.post('/group-funds/:id/transactions', authMiddleware, (req, res) => {
   const { id } = req.params;
   const data = loadGroupFunds();
   const fund = data.funds.find((item) => item.id === id);

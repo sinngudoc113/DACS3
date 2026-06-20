@@ -46,7 +46,7 @@ class AppLocalizations {
       'insightsAction': 'Insights',
       'tapToOpen': 'Tap to open',
       'budgetPace': 'Budget pace',
-      'budgetPaceSubtitle': '72% of this month budget used',
+      'budgetPaceSubtitle': '{percent}% of this month budget used',
       'recentTransactions': 'Recent transactions',
       'seeAll': 'See all',
       'noTransactions':
@@ -84,7 +84,7 @@ class AppLocalizations {
       'insightsTitle': 'Insights',
       'insightsSubtitle': 'This month overview',
       'statsTitle': 'Cashflow movement',
-      'week': 'Week',
+      'week': 'Day',
       'month': 'Month',
       'year': 'Year',
       'difference': 'Difference',
@@ -92,10 +92,10 @@ class AppLocalizations {
       'selectYear': 'Selected year',
       'trendTitle': 'Movement',
       'compareSamePeriod': 'Compare period',
-      'periodWeek': 'last week',
+      'periodWeek': 'yesterday',
       'periodMonth': 'last month',
       'periodYear': 'last year',
-      'currentWeek': 'last 7 days',
+      'currentWeek': 'today',
       'currentMonth': 'selected month',
       'currentYear': 'selected year',
       'totalIncomeForRange': 'Total income {range}',
@@ -105,6 +105,8 @@ class AppLocalizations {
       'decreaseComparedTo': 'Down {amount} vs {range}',
       'balanceBreakdown': 'Monthly breakdown',
       'detailByMonth': 'Monthly breakdown',
+      'detailByWeek': 'Weekly breakdown',
+      'detailByHour': 'Hourly breakdown',
       'detailByDay': 'Daily breakdown',
       'childCategories': 'Child categories',
       'totalSpending': 'Total spending',
@@ -210,7 +212,7 @@ class AppLocalizations {
       'insightsAction': 'Thống kê',
       'tapToOpen': 'Nhấn để mở',
       'budgetPace': 'Tiến độ ngân sách',
-      'budgetPaceSubtitle': 'Đã dùng 72% ngân sách tháng',
+      'budgetPaceSubtitle': 'Đã dùng {percent}% ngân sách tháng',
       'recentTransactions': 'Giao dịch gần đây',
       'seeAll': 'Xem tất cả',
       'noTransactions':
@@ -285,7 +287,7 @@ class AppLocalizations {
       'insightsTitle': 'Thống kê',
       'insightsSubtitle': 'Tổng quan tháng này',
       'statsTitle': 'Biến động thu chi',
-      'week': 'Tuần',
+      'week': 'Ngày',
       'month': 'Tháng',
       'year': 'Năm',
       'difference': 'Chênh lệch',
@@ -293,10 +295,10 @@ class AppLocalizations {
       'selectYear': 'Chọn năm',
       'trendTitle': 'Biến động',
       'compareSamePeriod': 'So với cùng kỳ',
-      'periodWeek': 'tuần trước',
+      'periodWeek': 'hôm qua',
       'periodMonth': 'tháng trước',
       'periodYear': 'năm trước',
-      'currentWeek': '7 ngày gần nhất',
+      'currentWeek': 'hôm nay',
       'currentMonth': 'tháng đang chọn',
       'currentYear': 'năm đang chọn',
       'totalIncomeForRange': 'Tổng thu {range}',
@@ -306,6 +308,8 @@ class AppLocalizations {
       'decreaseComparedTo': 'Giảm {amount} so với cùng kỳ {range}',
       'balanceBreakdown': 'Chi tiết theo tháng',
       'detailByMonth': 'Chi tiết theo tháng',
+      'detailByWeek': 'Chi tiết theo tuần',
+      'detailByHour': 'Chi tiết theo giờ',
       'detailByDay': 'Chi tiết theo ngày',
       'childCategories': 'Danh mục con',
       'totalSpending': 'Tổng chi tiêu',
@@ -387,7 +391,8 @@ class AppLocalizations {
   String get insightsAction => _text('insightsAction');
   String get tapToOpen => _text('tapToOpen');
   String get budgetPace => _text('budgetPace');
-  String get budgetPaceSubtitle => _text('budgetPaceSubtitle');
+  String budgetPaceSubtitle(int percent) =>
+      _format('budgetPaceSubtitle', {'percent': '$percent'});
   String get recentTransactions => _text('recentTransactions');
   String get seeAll => _text('seeAll');
   String get noTransactions => _text('noTransactions');
@@ -448,6 +453,8 @@ class AppLocalizations {
       _format('decreaseComparedTo', {'amount': amount, 'range': range});
   String get balanceBreakdown => _text('balanceBreakdown');
   String get detailByMonth => _text('detailByMonth');
+  String get detailByWeek => _text('detailByWeek');
+  String get detailByHour => _text('detailByHour');
   String get detailByDay => _text('detailByDay');
   String get childCategories => _text('childCategories');
   String get totalSpending => _text('totalSpending');

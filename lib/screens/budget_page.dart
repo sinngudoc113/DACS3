@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/monthly_budget.dart';
 import '../models/transaction_entry.dart';
 import '../services/budget_service.dart';
+import '../services/budget_alert_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/currency_format.dart';
 import '../widgets/shared_widgets.dart';
@@ -24,6 +27,7 @@ class _BudgetPageState extends State<BudgetPage> {
   late final TransactionService _transactionService;
   late final BudgetService _budgetService;
   final TextEditingController _limitController = TextEditingController();
+  final BudgetAlertService _budgetAlertService = BudgetAlertService();
   String _selectedCategory = 'overall';
   bool _isSaving = false;
   bool _reminderEnabled = false;
@@ -40,6 +44,7 @@ class _BudgetPageState extends State<BudgetPage> {
         widget.budgetService ?? BudgetService.node(baseUrl: apiBaseUrl());
     _transactionService.load();
     _budgetService.load();
+    unawaited(_budgetAlertService.initialize());
     _loadReminderPreference();
   }
 
@@ -137,6 +142,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     transactions,
                     currentMonth,
                   );
+                  _queueBudgetAlerts(currentBudgets, spending, l10n);
 
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 18, 24, 32),
@@ -260,6 +266,27 @@ class _BudgetPageState extends State<BudgetPage> {
         ),
       ],
     );
+  }
+
+  void _queueBudgetAlerts(
+    List<MonthlyBudget> budgets,
+    Map<String, double> spending,
+    AppLocalizations l10n,
+  ) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final budget in budgets) {
+        final spent = budget.category == 'overall'
+            ? spending.values.fold<double>(0, (sum, value) => sum + value)
+            : spending[budget.category] ?? 0;
+        unawaited(
+          _budgetAlertService.maybeNotify(
+            budget: budget,
+            spent: spent,
+            categoryLabel: _budgetCategoryLabel(l10n, budget.category),
+          ),
+        );
+      }
+    });
   }
 }
 

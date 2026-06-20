@@ -40,6 +40,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       DashboardPage(
         service: _service,
+        budgetService: _budgetService,
         onNavigateToTab: (value) => setState(() => _index = value),
       ),
       AddTransactionPage(service: _service),

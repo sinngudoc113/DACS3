@@ -138,12 +138,26 @@ class AppLocalizations {
       'signInWithGoogleToUse': 'Sign in with Google to use group funds',
       'createGroupFund': 'Create group fund',
       'groupFundName': 'Fund name',
+      'groupFundGoal': 'Fund goal',
+      'setGroupFundGoal': 'Set fund goal',
       'inviteMember': 'Invite member',
       'memberEmail': 'Member email',
       'addFundTransaction': 'Add fund transaction',
       'noGroupFunds': 'No group funds yet. Create one to start.',
       'fundMembers': 'Members',
       'fundBalance': 'Fund balance',
+      'memberFundStats': 'Member balance stats',
+      'viewMemberFundStats': 'View member stats',
+      'performedBy': 'Performed by: {name}',
+      'splitMembers': 'Split between',
+      'splitShare': 'Share: {amount}',
+      'surplusStatus': 'Surplus',
+      'deficitStatus': 'Deficit',
+      'balancedStatus': 'Balanced',
+      'memberHistory': '{name} history',
+      'noMemberHistory': 'No group transactions for this member yet.',
+      'createdByMember': 'Created by this member',
+      'includedInSplit': 'Included in split',
       'leader': 'Leader',
       'member': 'Member',
       'currentBudgetProgress': 'Current progress',
@@ -272,12 +286,26 @@ class AppLocalizations {
       'signInWithGoogleToUse': 'Đăng nhập Google để dùng Quỹ nhóm',
       'createGroupFund': 'Tạo Quỹ nhóm',
       'groupFundName': 'Tên quỹ',
+      'groupFundGoal': 'Mục tiêu quỹ',
+      'setGroupFundGoal': 'Đặt mục tiêu quỹ',
       'inviteMember': 'Mời thành viên',
       'memberEmail': 'Email thành viên',
       'addFundTransaction': 'Thêm giao dịch quỹ',
       'noGroupFunds': 'Chưa có Quỹ nhóm. Hãy tạo một quỹ để bắt đầu.',
       'fundMembers': 'Thành viên',
       'fundBalance': 'Số dư quỹ',
+      'memberFundStats': 'Thống kê hạn mức thành viên',
+      'viewMemberFundStats': 'Xem thống kê thành viên',
+      'performedBy': 'Người thực hiện: {name}',
+      'splitMembers': 'Chia cho',
+      'splitShare': 'Phần mỗi người: {amount}',
+      'surplusStatus': 'Dư',
+      'deficitStatus': 'Âm',
+      'balancedStatus': 'Cân bằng',
+      'memberHistory': 'Lịch sử của {name}',
+      'noMemberHistory': 'Thành viên này chưa có giao dịch quỹ.',
+      'createdByMember': 'Người này tạo giao dịch',
+      'includedInSplit': 'Có trong phần chia',
       'leader': 'Trưởng nhóm',
       'member': 'Thành viên',
       'processing': 'Đang xử lý...',
@@ -483,12 +511,26 @@ class AppLocalizations {
   String get signInWithGoogleToUse => _text('signInWithGoogleToUse');
   String get createGroupFund => _text('createGroupFund');
   String get groupFundName => _text('groupFundName');
+  String get groupFundGoal => _text('groupFundGoal');
+  String get setGroupFundGoal => _text('setGroupFundGoal');
   String get inviteMember => _text('inviteMember');
   String get memberEmail => _text('memberEmail');
   String get addFundTransaction => _text('addFundTransaction');
   String get noGroupFunds => _text('noGroupFunds');
   String get fundMembers => _text('fundMembers');
   String get fundBalance => _text('fundBalance');
+  String get memberFundStats => _text('memberFundStats');
+  String get viewMemberFundStats => _text('viewMemberFundStats');
+  String performedBy(String name) => _format('performedBy', {'name': name});
+  String get splitMembers => _text('splitMembers');
+  String splitShare(String amount) => _format('splitShare', {'amount': amount});
+  String get surplusStatus => _text('surplusStatus');
+  String get deficitStatus => _text('deficitStatus');
+  String get balancedStatus => _text('balancedStatus');
+  String memberHistory(String name) => _format('memberHistory', {'name': name});
+  String get noMemberHistory => _text('noMemberHistory');
+  String get createdByMember => _text('createdByMember');
+  String get includedInSplit => _text('includedInSplit');
   String get leader => _text('leader');
   String get member => _text('member');
   String get currentBudgetProgress => _text('currentBudgetProgress');

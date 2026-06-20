@@ -44,8 +44,11 @@ class GroupFundService {
     }
   }
 
-  Future<void> createFund(String name) async {
-    final fund = await _api.createFund(name);
+  Future<void> createFund({
+    required String name,
+    required double goalAmount,
+  }) async {
+    final fund = await _api.createFund(name: name, goalAmount: goalAmount);
     _store.value = [fund, ..._store.value];
   }
 
@@ -57,11 +60,20 @@ class GroupFundService {
     _replaceFund(fund);
   }
 
+  Future<void> setGoal({
+    required String fundId,
+    required double goalAmount,
+  }) async {
+    final fund = await _api.setGoal(fundId: fundId, goalAmount: goalAmount);
+    _replaceFund(fund);
+  }
+
   Future<void> addTransaction({
     required String fundId,
     required String title,
     required double amount,
     required GroupFundTransactionType type,
+    required List<String> participantIds,
     String note = '',
   }) async {
     final fund = await _api.addTransaction(
@@ -69,6 +81,7 @@ class GroupFundService {
       title: title,
       amount: amount,
       type: type,
+      participantIds: participantIds,
       note: note,
     );
     _replaceFund(fund);
@@ -109,11 +122,14 @@ class _GroupFundApi {
         .toList(growable: false);
   }
 
-  Future<GroupFund> createFund(String name) async {
+  Future<GroupFund> createFund({
+    required String name,
+    required double goalAmount,
+  }) async {
     final response = await client.post(
       Uri.parse('$baseUrl/group-funds'),
       headers: await _headers(),
-      body: jsonEncode({'name': name}),
+      body: jsonEncode({'name': name, 'goalAmount': goalAmount}),
     );
     _throwIfFailed(response, 201);
     return GroupFund.fromJson(
@@ -136,11 +152,27 @@ class _GroupFundApi {
     );
   }
 
+  Future<GroupFund> setGoal({
+    required String fundId,
+    required double goalAmount,
+  }) async {
+    final response = await client.patch(
+      Uri.parse('$baseUrl/group-funds/$fundId/goal'),
+      headers: await _headers(),
+      body: jsonEncode({'goalAmount': goalAmount}),
+    );
+    _throwIfFailed(response, 200);
+    return GroupFund.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<GroupFund> addTransaction({
     required String fundId,
     required String title,
     required double amount,
     required GroupFundTransactionType type,
+    required List<String> participantIds,
     required String note,
   }) async {
     final response = await client.post(
@@ -151,6 +183,7 @@ class _GroupFundApi {
         'amount': amount,
         'type': type.name,
         'note': note,
+        'participantIds': participantIds,
       }),
     );
     _throwIfFailed(response, 201);

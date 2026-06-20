@@ -322,6 +322,45 @@ function mapGroupFund(fund) {
   };
 }
 
+function memberDisplayName(member) {
+  return member.displayName || member.email || 'Member';
+}
+
+function normalizeMemberIds(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item || '').trim()).filter(Boolean)
+    : [];
+}
+
+function buildGroupFundParticipants({ fund, participantIds, amount }) {
+  const members = Array.isArray(fund.members) ? fund.members : [];
+  const selectedIds = new Set(participantIds);
+  const selectedMembers = members.filter((member) => selectedIds.has(member.uid));
+  const targetMembers = selectedMembers.length > 0 ? selectedMembers : members;
+  const share = targetMembers.length > 0 ? amount / targetMembers.length : amount;
+
+  return targetMembers.map((member) => ({
+    uid: member.uid,
+    email: member.email || '',
+    displayName: memberDisplayName(member),
+    amount: share,
+    paid: false,
+  }));
+}
+
+function buildGroupFundIncomeParticipant({ fund, user, amount }) {
+  const members = Array.isArray(fund.members) ? fund.members : [];
+  const member = members.find((item) => item.uid === user.uid);
+
+  return member ? [{
+    uid: member.uid,
+    email: member.email || '',
+    displayName: memberDisplayName(member),
+    amount,
+    paid: true,
+  }] : [];
+}
+
 function transactionBelongsToUser(transaction, user) {
   return user.role === 'admin' || transaction.userId === user.uid;
 }
@@ -653,9 +692,14 @@ app.get('/group-funds', authMiddleware, (req, res) => {
 
 app.post('/group-funds', authMiddleware, (req, res) => {
   const name = String(req.body.name || '').trim();
+  const goalAmount = Number(req.body.goalAmount) || 0;
 
   if (!name) {
     return res.status(400).json({ message: 'Group fund name is required.' });
+  }
+
+  if (goalAmount <= 0) {
+    return res.status(400).json({ message: 'Fund goal must be greater than zero.' });
   }
 
   const data = loadGroupFunds();
@@ -663,6 +707,7 @@ app.post('/group-funds', authMiddleware, (req, res) => {
   const fund = {
     id: `fund-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     name,
+    goalAmount,
     ownerId: req.user.uid,
     ownerEmail: req.user.email || '',
     members: [
@@ -727,6 +772,30 @@ app.post('/group-funds/:id/invite', authMiddleware, (req, res) => {
   res.json(mapGroupFund(fund));
 });
 
+app.patch('/group-funds/:id/goal', authMiddleware, (req, res) => {
+  const { id } = req.params;
+  const goalAmount = Number(req.body.goalAmount) || 0;
+  const data = loadGroupFunds();
+  const fund = data.funds.find((item) => item.id === id);
+
+  if (!fund || !fundBelongsToUser(fund, req.user)) {
+    return res.status(404).json({ message: 'Group fund not found.' });
+  }
+
+  if (!fundManagedByUser(fund, req.user)) {
+    return res.status(403).json({ message: 'Only the fund leader can update the goal.' });
+  }
+
+  if (goalAmount <= 0) {
+    return res.status(400).json({ message: 'Fund goal must be greater than zero.' });
+  }
+
+  fund.goalAmount = goalAmount;
+  fund.updatedAt = new Date().toISOString();
+  saveGroupFunds(data);
+  res.json(mapGroupFund(fund));
+});
+
 app.post('/group-funds/:id/transactions', authMiddleware, (req, res) => {
   const { id } = req.params;
   const data = loadGroupFunds();
@@ -736,7 +805,10 @@ app.post('/group-funds/:id/transactions', authMiddleware, (req, res) => {
     return res.status(404).json({ message: 'Group fund not found.' });
   }
 
+  const type = req.body.type === 'income' ? 'income' : 'expense';
+  const participantIds = normalizeMemberIds(req.body.participantIds);
   const amount = Number(req.body.amount) || 0;
+
   if (amount <= 0) {
     return res.status(400).json({ message: 'Amount must be greater than zero.' });
   }
@@ -749,11 +821,15 @@ app.post('/group-funds/:id/transactions', authMiddleware, (req, res) => {
     id: `fund-tx-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     title: String(req.body.title || '').trim() || 'Group transaction',
     amount,
-    type: req.body.type === 'income' ? 'income' : 'expense',
+    type,
     note: String(req.body.note || '').trim(),
     createdAt: new Date().toISOString(),
     createdBy: req.user.uid,
+    createdByName: req.user.displayName || req.user.email || '',
     createdByEmail: req.user.email || '',
+    participants: type === 'income'
+      ? buildGroupFundIncomeParticipant({ fund, user: req.user, amount })
+      : buildGroupFundParticipants({ fund, participantIds, amount }),
   };
 
   fund.transactions.unshift(transaction);
